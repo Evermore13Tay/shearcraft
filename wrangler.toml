@@ -2,6 +2,14 @@ name = "www"
 main = "worker.js"
 compatibility_date = "2026-09-21"
 
+routes = [
+  { pattern = "huitongcraft.vip", custom_domain = true },
+  { pattern = "www.huitongcraft.vip", custom_domain = true },
+]
+
+# keep the workers.dev URL alive as a backup entry point
+workers_dev = true
+
 [assets]
 directory = "./public"
 binding = "ASSETS"
