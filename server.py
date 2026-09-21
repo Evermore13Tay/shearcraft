@@ -17,24 +17,27 @@ MAX_BODY = 8_000_000  # bytes; covers base64-encoded product photos
 # First-run seed so the storefront is never empty. After that, products.db is
 # the source of truth and this list is ignored (delete products.db to re-seed).
 SEED = [
+    {"id": "pinking-shears-huitong", "name": "Hui Tong Strong & Sharp Pinking Shears — Serrated & Scalloped Fabric Scissors", "price": 17.39,
+     "colors": [{"name": "Serrated 3mm", "hex": ""}, {"name": "Serrated 5mm", "hex": ""}, {"name": "Serrated 7mm", "hex": ""},
+                {"name": "Scalloped 5mm", "hex": ""}, {"name": "Scalloped 7mm", "hex": ""}, {"name": "Wavy 18mm", "hex": ""}],
+     "images": ["images/pinking-shears-1.jpg", "images/pinking-shears-2.jpg", "images/pinking-shears-3.jpg",
+                "images/pinking-shears-4.jpg", "images/pinking-shears-5.jpg"],
+     "description": "Effortlessly cuts denim, leather, and silk — clean from first tooth to last. Hand-sharpened by master craftsmen; high-carbon stainless steel resists rust and stays sharp 3x longer than standard shears. The precision serrated blade creates a smooth, finished edge that prevents fraying."},
     {"id": "pro-tailor-8", "name": "Professional 8\" Tailor Scissors", "price": 32.99,
      "colors": [{"name": "Classic Silver", "hex": "#c9c9c9"}, {"name": "Gold", "hex": "#d4af6a"}, {"name": "Matte Black", "hex": "#2b2b2b"}],
-     "image": "", "description": "Forged from Japanese stainless steel with a razor-sharp convex edge. Balanced for all-day cutting on fabric, leather and denim."},
+     "images": [], "description": "Forged from Japanese stainless steel with a razor-sharp convex edge. Balanced for all-day cutting on fabric, leather and denim."},
     {"id": "embroidery-4", "name": "4\" Embroidery Detail Scissors", "price": 14.99,
      "colors": [{"name": "Rose Gold", "hex": "#e0a899"}, {"name": "Silver", "hex": "#c9c9c9"}],
-     "image": "", "description": "Fine pointed tips for thread work, embroidery and precision craft cuts. Includes a protective leather sheath."},
+     "images": [], "description": "Fine pointed tips for thread work, embroidery and precision craft cuts. Includes a protective leather sheath."},
     {"id": "kitchen-shears", "name": "Heavy-Duty Kitchen Shears", "price": 21.99,
      "colors": [{"name": "Black", "hex": "#2b2b2b"}, {"name": "Red", "hex": "#b03a2e"}],
-     "image": "", "description": "Come-apart blades for easy cleaning. Cuts poultry, herbs and packaging; built-in bottle opener and nutcracker."},
+     "images": [], "description": "Come-apart blades for easy cleaning. Cuts poultry, herbs and packaging; built-in bottle opener and nutcracker."},
     {"id": "hair-cutting-6", "name": "6\" Barber Hair Cutting Shears", "price": 45.99,
      "colors": [{"name": "Silver", "hex": "#c9c9c9"}, {"name": "Rainbow", "hex": "#9b7ec4"}, {"name": "Matte Black", "hex": "#2b2b2b"}],
-     "image": "", "description": "440C steel with tension adjustment screw and removable finger rest. Salon-grade sharpness for clean, quiet cuts."},
-    {"id": "pinking-shears", "name": "9\" Pinking Shears", "price": 18.99,
-     "colors": [{"name": "Silver", "hex": "#c9c9c9"}, {"name": "Teal", "hex": "#3f8f8b"}],
-     "image": "", "description": "Zigzag edge prevents fabric fraying. Comfortable soft-grip handles sized for extended sewing sessions."},
+     "images": [], "description": "440C steel with tension adjustment screw and removable finger rest. Salon-grade sharpness for clean, quiet cuts."},
     {"id": "craft-set-3", "name": "Craft Scissors 3-Piece Set", "price": 26.99,
      "colors": [{"name": "Pastel Mix", "hex": "#d8b4c8"}, {"name": "Bold Mix", "hex": "#4a6fa5"}],
-     "image": "", "description": "Three sizes (5\", 7\", 8.5\") for paper, vinyl and mixed-media craft. Titanium-coated blades resist adhesive buildup."},
+     "images": [], "description": "Three sizes (5\", 7\", 8.5\") for paper, vinyl and mixed-media craft. Titanium-coated blades resist adhesive buildup."},
 ]
 
 ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{0,60}$")
@@ -47,8 +50,19 @@ def connect():
     con.row_factory = sqlite3.Row
     con.execute("""CREATE TABLE IF NOT EXISTS products(
         id TEXT PRIMARY KEY, name TEXT NOT NULL, price REAL NOT NULL,
-        description TEXT DEFAULT '', image TEXT DEFAULT '',
+        description TEXT DEFAULT '', images TEXT DEFAULT '[]',
         colors TEXT DEFAULT '[]', position INTEGER DEFAULT 0)""")
+    # one-time migration: single `image` column -> `images` JSON array
+    cols = [r["name"] for r in con.execute("PRAGMA table_info(products)")]
+    if "images" not in cols:
+        con.execute("ALTER TABLE products ADD COLUMN images TEXT DEFAULT '[]'")
+        if "image" in cols:
+            con.execute("UPDATE products SET images = json_array(image) WHERE image != ''")
+    if "image" in cols:
+        try:
+            con.execute("ALTER TABLE products DROP COLUMN image")
+        except sqlite3.OperationalError:
+            pass  # old SQLite without DROP COLUMN: harmless to leave it
     return con
 
 
@@ -56,14 +70,14 @@ def seed_if_empty(con):
     if con.execute("SELECT COUNT(*) AS c FROM products").fetchone()["c"]:
         return
     for i, p in enumerate(SEED):
-        con.execute("INSERT INTO products VALUES(?,?,?,?,?,?,?)",
-                    (p["id"], p["name"], p["price"], p["description"], p["image"], json.dumps(p["colors"]), i))
+        con.execute("INSERT INTO products(id, name, price, description, images, colors, position) VALUES(?,?,?,?,?,?,?)",
+                    (p["id"], p["name"], p["price"], p["description"], json.dumps(p["images"]), json.dumps(p["colors"]), i))
     con.commit()
 
 
 def row_to_product(r):
     return {"id": r["id"], "name": r["name"], "price": r["price"],
-            "description": r["description"], "image": r["image"],
+            "description": r["description"], "images": json.loads(r["images"]),
             "colors": json.loads(r["colors"])}
 
 
@@ -81,10 +95,15 @@ def validate(p):
         return "price must be a number between 0 and 1000000"
     colors = p.get("colors")
     if not isinstance(colors, list) or not colors:
-        return "at least one color required"
+        return "at least one variant/color required"
     for c in colors:
-        if not isinstance(c, dict) or not str(c.get("name", "")).strip() or not HEX_RE.match(str(c.get("hex", ""))):
-            return "each color needs a name and a #rrggbb hex"
+        if not isinstance(c, dict) or not str(c.get("name", "")).strip():
+            return "each variant needs a name"
+        if c.get("hex") and not HEX_RE.match(str(c["hex"])):
+            return "color hex must be #rrggbb (or empty for a text variant)"
+    images = p.get("images") or []
+    if not isinstance(images, list) or any(not re.match(r"^images/[a-z0-9.-]+$", str(i)) for i in images):
+        return "images must be a list of uploaded image paths"
     return None
 
 
@@ -141,9 +160,9 @@ class Handler(SimpleHTTPRequestHandler):
                 con.close()
                 return self.send_json({"error": "id already exists"}, 409)
             pos = con.execute("SELECT COALESCE(MAX(position)+1, 0) AS p FROM products").fetchone()["p"]
-            con.execute("INSERT INTO products VALUES(?,?,?,?,?,?,?)",
+            con.execute("INSERT INTO products(id, name, price, description, images, colors, position) VALUES(?,?,?,?,?,?,?)",
                         (body["id"], body["name"].strip(), float(body["price"]),
-                         str(body.get("description", "")).strip(), str(body.get("image", "")).strip(),
+                         str(body.get("description", "")).strip(), json.dumps(body.get("images") or []),
                          json.dumps(body["colors"]), pos))
             con.commit()
             con.close()
@@ -185,9 +204,9 @@ class Handler(SimpleHTTPRequestHandler):
         if err:
             return self.send_json({"error": err}, 400)
         con = connect()
-        cur = con.execute("UPDATE products SET name=?, price=?, description=?, image=?, colors=? WHERE id=?",
+        cur = con.execute("UPDATE products SET name=?, price=?, description=?, images=?, colors=? WHERE id=?",
                           (body["name"].strip(), float(body["price"]), str(body.get("description", "")).strip(),
-                           str(body.get("image", "")).strip(), json.dumps(body["colors"]), m.group(1)))
+                           json.dumps(body.get("images") or []), json.dumps(body["colors"]), m.group(1)))
         n = cur.rowcount
         con.commit()
         con.close()

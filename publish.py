@@ -21,7 +21,7 @@ def main():
     rows = con.execute("SELECT * FROM products ORDER BY position, rowid").fetchall()
     con.close()
     products = [{"id": r["id"], "name": r["name"], "price": r["price"],
-                 "description": r["description"], "image": r["image"],
+                 "description": r["description"], "images": json.loads(r["images"]),
                  "colors": json.loads(r["colors"])} for r in rows]
     if not products:
         sys.exit("Catalog is empty — add a product in the admin first.")

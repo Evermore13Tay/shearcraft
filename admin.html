@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShearCraft Admin</title>
+<title>Hui Tong Admin</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; background: #f4f2ee; color: #1c1a17; }
@@ -117,24 +117,30 @@ function render() {
         <div class="field"><label>Description</label><textarea data-f="description">${esc(p.description)}</textarea></div>
       </div>
       <div class="row" style="align-items:flex-end">
-        <div><label>Image</label><img class="img-preview" data-img src="${p.image || placeholderImg(p)}" onerror="this.src=''"></div>
         <div class="field">
+          <label>Images (first = cover, up to 6)</label>
+          <div data-images style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
+            ${(p.images || []).map(src => `
+              <div style="position:relative" data-imgwrap data-path="${esc(src)}">
+                <img class="img-preview" src="${src}">
+                <button class="small danger" style="position:absolute;top:-6px;right:-6px;border-radius:50%;padding:2px 7px" onclick="this.parentElement.remove()">×</button>
+              </div>`).join("")}
+          </div>
           <input type="file" accept="image/*" onchange="uploadImg(this, ${i})">
-          <input type="hidden" data-f="image" value="${esc(p.image)}">
         </div>
-        ${p.image ? `<div style="align-self:flex-end"><button class="small" onclick="clearImg(${i})">Remove image</button></div>` : ""}
       </div>
       <div class="row" style="margin-top:6px"><div class="field">
-        <label>Colors</label>
+        <label>Variants (colors / styles)</label>
         <div data-colors>
           ${p.colors.map((c, j) => `
             <div class="color-row">
-              <input type="text" value="${esc(c.name)}" placeholder="Color name">
-              <input type="color" value="${esc(c.hex)}">
+              <input type="text" value="${esc(c.name)}" placeholder="Name (e.g. Gold, or Serrated 5mm)">
+              <input type="color" value="${esc(c.hex) || "#c9c9c9"}" ${c.hex ? "" : "disabled"}>
+              <label class="muted" style="display:flex;align-items:center;gap:4px;text-transform:none;letter-spacing:0"><input type="checkbox" ${c.hex ? "checked" : ""} onchange="this.previousElementSibling.disabled=!this.checked"> swatch</label>
               <button class="small danger" onclick="this.parentElement.remove()">×</button>
             </div>`).join("")}
         </div>
-        <button class="small" onclick="addColor(${i})">+ color</button>
+        <button class="small" onclick="addColor(${i})">+ variant</button>
       </div></div>
       <div class="actions">
         <button class="danger" onclick="del(${i})">Delete</button>
@@ -154,11 +160,13 @@ function cardEl(i) { return document.querySelectorAll("#list .card")[i]; }
 function gather(i) {
   const el = cardEl(i);
   const val = f => el.querySelector(`[data-f="${f}"]`).value;
+  const images = [...el.querySelectorAll("[data-imgwrap]")].map(w => w.dataset.path);
   const colors = [...el.querySelectorAll("[data-colors] .color-row")].map(r => ({
-    name: r.children[0].value.trim(), hex: r.children[1].value
+    name: r.children[0].value.trim(),
+    hex: r.querySelector("input[type=checkbox]").checked ? r.querySelector("input[type=color]").value : ""
   })).filter(c => c.name);
   return { id: products[i].id, name: val("name"), price: parseFloat(val("price")),
-           description: val("description"), image: val("image"), colors };
+           description: val("description"), images, colors };
 }
 
 function save(i) {
@@ -183,7 +191,7 @@ function addProduct() {
   let finalId = id, n = 2;
   while (products.some(p => p.id === finalId)) finalId = `${id}-${n++}`;
   api("/api/products", { method: "POST", json: {
-    id: finalId, name, price, description: "", image: "",
+    id: finalId, name, price, description: "", images: [],
     colors: [{ name: "Silver", hex: "#c9c9c9" }]
   }}).then(() => {
     document.getElementById("newName").value = "";
@@ -207,21 +215,17 @@ function uploadImg(input, i) {
   reader.onload = () => {
     api("/api/upload", { method: "POST", json: { filename: file.name, data: reader.result.split(",")[1] } })
       .then(d => {
-        const el = cardEl(i);
-        el.querySelector('[data-f="image"]').value = d.path;
-        el.querySelector("[data-img]").src = d.path;
+        cardEl(i).querySelector("[data-images]").insertAdjacentHTML("beforeend", `
+          <div style="position:relative" data-imgwrap data-path="${d.path}">
+            <img class="img-preview" src="${d.path}">
+            <button class="small danger" style="position:absolute;top:-6px;right:-6px;border-radius:50%;padding:2px 7px" onclick="this.parentElement.remove()">×</button>
+          </div>`);
+        input.value = "";
         toast("Image uploaded — click Save");
       })
       .catch(e => toast(e.message, true));
   };
   reader.readAsDataURL(file);
-}
-
-function clearImg(i) {
-  const el = cardEl(i);
-  el.querySelector('[data-f="image"]').value = "";
-  el.querySelector("[data-img]").src = placeholderImg(products[i]);
-  toast("Image removed — click Save");
 }
 
 if (PW) {

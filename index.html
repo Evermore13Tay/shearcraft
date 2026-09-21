@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ShearCraft — Premium Scissors & Shears</title>
+<title>Hui Tong — Premium Scissors & Shears</title>
 <style>
   :root {
     --bg: #faf8f5;
@@ -51,11 +51,24 @@
 
   /* ---------- hero ---------- */
   .hero {
-    max-width: 1180px; margin: 0 auto; padding: 84px 24px 64px; text-align: center;
+    position: relative; min-height: 460px; display: flex; align-items: center; justify-content: center;
+    text-align: center; background-size: cover; background-position: center;
   }
+  .hero::before { content: ""; position: absolute; inset: 0; background: rgba(250,248,245,.62); }
+  .hero-in { position: relative; padding: 84px 24px; }
   .hero .eyebrow { font-size: 12px; letter-spacing: .3em; text-transform: uppercase; color: var(--accent); }
   .hero h1 { font-size: clamp(36px, 5vw, 58px); margin: 18px 0 14px; }
-  .hero p { color: var(--muted); max-width: 520px; margin: 0 auto; line-height: 1.7; }
+  .hero p { color: var(--ink); max-width: 520px; margin: 0 auto 26px; line-height: 1.7; }
+  .hero-cta {
+    display: inline-block; background: var(--ink); color: #fff; padding: 14px 34px;
+    border-radius: 999px; font-size: 13px; letter-spacing: .16em; text-transform: uppercase;
+  }
+
+  /* ---------- brand story ---------- */
+  .story { max-width: 720px; margin: 0 auto; padding: 72px 24px; text-align: center; }
+  .story h2 { font-size: 30px; margin-bottom: 18px; }
+  .story p { color: var(--muted); line-height: 1.9; font-size: 16px; }
+  .story .sig { font-family: Georgia, serif; font-style: italic; margin-top: 20px; color: var(--accent); }
 
   /* ---------- grid ---------- */
   .section { max-width: 1180px; margin: 0 auto; padding: 0 24px 80px; }
@@ -75,6 +88,17 @@
   /* ---------- product detail ---------- */
   .detail { max-width: 1080px; margin: 0 auto; padding: 56px 24px 90px; display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
   .detail-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; border: 1px solid var(--line); background: #f0ebe3; }
+  .thumbs { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .thumb {
+    width: 68px; height: 68px; object-fit: cover; border-radius: 4px; cursor: pointer;
+    border: 1px solid var(--line); opacity: .65; padding: 0; background: #f0ebe3;
+  }
+  .thumb.active { opacity: 1; border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+  .pill {
+    padding: 9px 18px; border: 1px solid var(--line); border-radius: 999px;
+    background: #fff; font-size: 13px;
+  }
+  .pill.active { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
   .breadcrumb { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; display: inline-block; }
   .breadcrumb:hover { color: var(--ink); }
   .detail h1 { font-size: 34px; margin-bottom: 10px; }
@@ -153,7 +177,7 @@
 
 <header>
   <div class="header-in">
-    <a href="#/" class="logo">SHEAR<span>CRAFT</span></a>
+    <a href="#/" class="logo">HUI <span>TONG</span></a>
     <nav>
       <a href="#/">Shop</a>
       <a href="#footer">About</a>
@@ -170,7 +194,7 @@
 <footer id="footer">
   <div class="footer-in">
     <div>
-      <div class="footer-logo">SHEAR<span style="color:var(--accent)">CRAFT</span></div>
+      <div class="footer-logo">HUI <span style="color:var(--accent)">TONG</span></div>
       <p>Precision scissors &amp; shears, crafted for professionals and home makers alike. Every pair is inspected by hand before it ships.</p>
     </div>
     <div>
@@ -186,7 +210,7 @@
       <a href="#footer">FAQ</a>
     </div>
   </div>
-  <div class="copyright">© 2026 ShearCraft. All rights reserved.</div>
+  <div class="copyright">© 2026 Hui Tong. All rights reserved.</div>
 </footer>
 
 <div class="overlay" id="overlay" onclick="toggleCart(false)"></div>
@@ -209,9 +233,16 @@
    (no server) still renders.
    ================================================================ */
 const STORE = {
-  name: "ShearCraft",
+  name: "Hui Tong",
   currency: "USD",
-  amazonUrl: "",   // optional: your Amazon listing URL, shown at checkout
+  amazonUrl: "https://www.amazon.com/gp/product/B06VVDZ1ZW",  // checkout button points here
+  heroImage: "images/hero.jpg",
+  heroEyebrow: "Hand-Finished Cutting Tools",
+  heroTitle: "Cut with confidence.",
+  heroText: "Professional-grade scissors and shears, sharpened and inspected by hand. Free shipping on orders over $35.",
+  storyTitle: "Our Story",
+  story: "Hui Tong began with a simple frustration: scissors that dulled too quickly. For over a decade we have hand-finished cutting tools for tailors, quilters and makers who measure twice and cut once. Every pair is sharpened, tested and inspected by hand before it leaves our workshop — because the cut is where every project begins.",
+  storySig: "— The Hui Tong Workshop",
 };
 
 // Fallback catalog, used only when /api/products is unreachable
@@ -219,11 +250,50 @@ const STORE = {
 // by publish.py — do not edit by hand.
 const PRODUCTS_SEED = [
   {
+    "id": "pinking-shears-huitong",
+    "name": "Hui Tong Strong & Sharp Pinking Shears — Serrated & Scalloped Fabric Scissors",
+    "price": 17.39,
+    "description": "Effortlessly cuts denim, leather, and silk — clean from first tooth to last. Hand-sharpened by master craftsmen; high-carbon stainless steel resists rust and stays sharp 3x longer than standard shears. The precision serrated blade creates a smooth, finished edge that prevents fraying and reduces bulk.",
+    "images": [
+      "images/pinking-shears-1.jpg",
+      "images/pinking-shears-2.jpg",
+      "images/pinking-shears-3.jpg",
+      "images/pinking-shears-4.jpg",
+      "images/pinking-shears-5.jpg"
+    ],
+    "colors": [
+      {
+        "name": "Serrated 5mm",
+        "hex": ""
+      },
+      {
+        "name": "Serrated 3mm",
+        "hex": ""
+      },
+      {
+        "name": "Serrated 7mm",
+        "hex": ""
+      },
+      {
+        "name": "Scalloped 5mm",
+        "hex": ""
+      },
+      {
+        "name": "Scalloped 7mm",
+        "hex": ""
+      },
+      {
+        "name": "Wavy 18mm",
+        "hex": ""
+      }
+    ]
+  },
+  {
     "id": "pro-tailor-8",
     "name": "Professional 8\" Tailor Scissors",
     "price": 32.99,
     "description": "Forged from Japanese stainless steel with a razor-sharp convex edge. Balanced for all-day cutting on fabric, leather and denim.",
-    "image": "",
+    "images": [],
     "colors": [
       {
         "name": "Classic Silver",
@@ -244,7 +314,7 @@ const PRODUCTS_SEED = [
     "name": "4\" Embroidery Detail Scissors",
     "price": 14.99,
     "description": "Fine pointed tips for thread work, embroidery and precision craft cuts. Includes a protective leather sheath.",
-    "image": "",
+    "images": [],
     "colors": [
       {
         "name": "Rose Gold",
@@ -261,7 +331,7 @@ const PRODUCTS_SEED = [
     "name": "Heavy-Duty Kitchen Shears",
     "price": 21.99,
     "description": "Come-apart blades for easy cleaning. Cuts poultry, herbs and packaging; built-in bottle opener and nutcracker.",
-    "image": "",
+    "images": [],
     "colors": [
       {
         "name": "Black",
@@ -278,7 +348,7 @@ const PRODUCTS_SEED = [
     "name": "6\" Barber Hair Cutting Shears",
     "price": 45.99,
     "description": "440C steel with tension adjustment screw and removable finger rest. Salon-grade sharpness for clean, quiet cuts.",
-    "image": "",
+    "images": [],
     "colors": [
       {
         "name": "Silver",
@@ -299,7 +369,7 @@ const PRODUCTS_SEED = [
     "name": "9\" Pinking Shears",
     "price": 18.99,
     "description": "Zigzag edge prevents fabric fraying. Comfortable soft-grip handles sized for extended sewing sessions.",
-    "image": "",
+    "images": [],
     "colors": [
       {
         "name": "Silver",
@@ -316,7 +386,7 @@ const PRODUCTS_SEED = [
     "name": "Craft Scissors 3-Piece Set",
     "price": 26.99,
     "description": "Three sizes (5\", 7\", 8.5\") for paper, vinyl and mixed-media craft. Titanium-coated blades resist adhesive buildup.",
-    "image": "",
+    "images": [],
     "colors": [
       {
         "name": "Pastel Mix",
@@ -339,9 +409,9 @@ fetch("/api/products")
 const fmt = new Intl.NumberFormat("en-US", { style: "currency", currency: STORE.currency });
 const $ = (s) => document.querySelector(s);
 
-/* ---- placeholder image: elegant SVG with product initial ---- */
+/* ---- product image: first gallery image, else elegant SVG placeholder ---- */
 function imgFor(p, colorHex) {
-  if (p.image) return p.image;
+  if (p.images && p.images.length) return p.images[0];
   const bg = colorHex || "#e8e2d8";
   const initial = p.name.replace(/[^A-Za-z]/g, "").slice(0, 1).toUpperCase();
   const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'>
@@ -376,10 +446,18 @@ function viewHome() {
       </div>
     </div>`).join("");
   return `
-    <section class="hero">
-      <div class="eyebrow">Hand-Finished Cutting Tools</div>
-      <h1>Cut with confidence.</h1>
-      <p>Professional-grade scissors and shears, sharpened and inspected by hand. Free shipping on orders over ${fmt.format(35)}.</p>
+    <section class="hero" style="background-image:url('${STORE.heroImage}')">
+      <div class="hero-in">
+        <div class="eyebrow">${STORE.heroEyebrow}</div>
+        <h1>${STORE.heroTitle}</h1>
+        <p>${STORE.heroText}</p>
+        <a class="hero-cta" href="#shop" onclick="document.querySelector('.section').scrollIntoView({behavior:'smooth'});return false;">Shop the Collection</a>
+      </div>
+    </section>
+    <section class="story">
+      <h2>${STORE.storyTitle}</h2>
+      <p>${STORE.story}</p>
+      <div class="sig">${STORE.storySig}</div>
     </section>
     <section class="section">
       <div class="section-head"><h2>Shop All</h2></div>
@@ -391,17 +469,27 @@ function viewDetail(id) {
   const p = PRODUCTS.find(x => x.id === id);
   if (!p) return `<section class="section"><h2>Product not found</h2></section>`;
   setTimeout(() => selectColor(0), 0);
+  const hasImgs = p.images && p.images.length;
+  const hasSwatches = p.colors.some(c => c.hex);
+  const gallery = hasImgs
+    ? `<img class="detail-img" id="detailImg" src="${p.images[0]}" alt="${p.name}">
+       <div class="thumbs">${p.images.map((src, i) =>
+         `<button class="thumb${i === 0 ? " active" : ""}" onclick="setMain(${i})" style="background-image:url('${src}');background-size:cover;background-position:center" aria-label="image ${i + 1}"></button>`).join("")}
+       </div>`
+    : `<img class="detail-img" id="detailImg" src="${imgFor(p, p.colors[0].hex)}" alt="${p.name}">`;
   return `
     <section class="detail">
-      <div><img class="detail-img" id="detailImg" src="${imgFor(p, p.colors[0].hex)}" alt="${p.name}"></div>
+      <div class="gallery">${gallery}</div>
       <div>
         <a class="breadcrumb" href="#/">← Shop / All Products</a>
         <h1>${p.name}</h1>
         <div class="detail-price">${fmt.format(p.price)} <small>${STORE.currency}</small></div>
         <div class="stock">✓ In stock, ships within 2 business days</div>
-        <div class="opt-label">Color — <b id="colorName">${p.colors[0].name}</b></div>
+        <div class="opt-label">${hasSwatches ? "Color" : "Style"} — <b id="colorName">${p.colors[0].name}</b></div>
         <div class="swatches" id="swatches">
-          ${p.colors.map((c, i) => `<button class="swatch${i === 0 ? " active" : ""}" style="background:${c.hex}" title="${c.name}" onclick="selectColor(${i})"></button>`).join("")}
+          ${p.colors.map((c, i) => c.hex
+            ? `<button class="swatch${i === 0 ? " active" : ""}" style="background:${c.hex}" title="${c.name}" onclick="selectColor(${i})"></button>`
+            : `<button class="pill${i === 0 ? " active" : ""}" onclick="selectColor(${i})">${c.name}</button>`).join("")}
         </div>
         <div class="opt-label">Quantity</div>
         <div class="qty">
@@ -420,14 +508,21 @@ function viewDetail(id) {
 
 /* ---- detail interactions ---- */
 let curProduct = null, curColor = 0, curQty = 1;
+function setMain(i) {
+  const imgs = curProduct.images;
+  if (!imgs || !imgs.length) return;
+  $("#detailImg").src = imgs[i];
+  document.querySelectorAll(".thumb").forEach((el, j) => el.classList.toggle("active", j === i));
+}
 function selectColor(i) {
   const id = location.hash.split("/")[2];
   curProduct = PRODUCTS.find(x => x.id === id);
   curColor = i;
   const c = curProduct.colors[i];
   $("#colorName").textContent = c.name;
-  $("#detailImg").src = imgFor(curProduct, c.hex);
-  document.querySelectorAll(".swatch").forEach((el, j) => el.classList.toggle("active", j === i));
+  // swap placeholder by color only when the product has no real photos
+  if (!curProduct.images || !curProduct.images.length) $("#detailImg").src = imgFor(curProduct, c.hex);
+  document.querySelectorAll(".swatch, .pill").forEach((el, j) => el.classList.toggle("active", j === i));
 }
 function stepQty(d) {
   curQty = Math.max(1, curQty + d);
