@@ -305,6 +305,7 @@ function editorHtml(p) {
     <div class="field-row">
       <div class="field"><label>Name</label><input type="text" data-f="name" value="${esc(p.name)}" oninput="markDirty('${esc(p.id)}')"></div>
       <div class="field price"><label>Price (USD)</label><input type="number" data-f="price" min="0" step="0.01" value="${p.price}" oninput="markDirty('${esc(p.id)}')"></div>
+      <div class="field price"><label>UPC (optional)</label><input type="text" data-f="upc" inputmode="numeric" placeholder="12 digits" value="${esc(p.upc || "")}" oninput="markDirty('${esc(p.id)}')"></div>
     </div>
     <div class="field-row">
       <div class="field"><label>Description</label><textarea data-f="description" oninput="markDirty('${esc(p.id)}')">${esc(p.description)}</textarea></div>
@@ -381,7 +382,8 @@ function gather(id) {
     name: r.children[0].value.trim(),
     hex: r.querySelector("input[type=checkbox]").checked ? r.querySelector("input[type=color]").value : ""
   })).filter(c => c.name);
-  return { id, name: val("name"), price: parseFloat(val("price")), description: val("description"), images, colors };
+  return { id, name: val("name"), price: parseFloat(val("price")), upc: val("upc").trim(),
+           description: val("description"), images, colors };
 }
 
 function save(id) {

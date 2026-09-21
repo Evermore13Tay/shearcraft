@@ -30,6 +30,8 @@ function validate(p) {
   const images = p.images || [];
   if (!Array.isArray(images) || images.some(i => !/^images\/[a-z0-9.-]+$/.test(String(i))))
     return "images must be a list of uploaded image paths";
+  const upc = String(p.upc || "").trim();
+  if (upc && !/^\d{8,14}$/.test(upc)) return "upc must be 8-14 digits (or empty)";
   return null;
 }
 
@@ -44,7 +46,7 @@ async function readJson(request) {
 }
 
 const rowToProduct = r => ({
-  id: r.id, name: r.name, price: r.price, description: r.description,
+  id: r.id, name: r.name, price: r.price, upc: r.upc || "", description: r.description,
   images: JSON.parse(r.images), colors: JSON.parse(r.colors),
 });
 
@@ -89,9 +91,10 @@ export default {
       if (exists) return json({ error: "id already exists" }, 409);
       const pos = (await env.DB.prepare("SELECT COALESCE(MAX(position)+1, 0) AS p FROM products").first()).p;
       await env.DB.prepare(
-        "INSERT INTO products(id, name, price, description, images, colors, position) VALUES(?,?,?,?,?,?,?)"
+        "INSERT INTO products(id, name, price, description, images, colors, position, upc) VALUES(?,?,?,?,?,?,?,?)"
       ).bind(body.id, body.name.trim(), Number(body.price), String(body.description || "").trim(),
-             JSON.stringify(body.images || []), JSON.stringify(body.colors), pos).run();
+             JSON.stringify(body.images || []), JSON.stringify(body.colors), pos,
+             String(body.upc || "").trim()).run();
       return json({ ok: true });
     }
 
@@ -137,9 +140,10 @@ export default {
       const err = validate(body);
       if (err) return json({ error: err }, 400);
       const res = await env.DB.prepare(
-        "UPDATE products SET name=?, price=?, description=?, images=?, colors=? WHERE id=?"
+        "UPDATE products SET name=?, price=?, description=?, images=?, colors=?, upc=? WHERE id=?"
       ).bind(body.name.trim(), Number(body.price), String(body.description || "").trim(),
-             JSON.stringify(body.images || []), JSON.stringify(body.colors), m[1]).run();
+             JSON.stringify(body.images || []), JSON.stringify(body.colors),
+             String(body.upc || "").trim(), m[1]).run();
       if (!res.meta.changes) return json({ error: "not found" }, 404);
       return json({ ok: true });
     }

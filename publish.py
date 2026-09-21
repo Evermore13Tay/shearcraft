@@ -20,7 +20,7 @@ def main():
     con.row_factory = sqlite3.Row
     rows = con.execute("SELECT * FROM products ORDER BY position, rowid").fetchall()
     con.close()
-    products = [{"id": r["id"], "name": r["name"], "price": r["price"],
+    products = [{"id": r["id"], "name": r["name"], "price": r["price"], "upc": r["upc"] or "",
                  "description": r["description"], "images": json.loads(r["images"]),
                  "colors": json.loads(r["colors"])} for r in rows]
     if not products:
