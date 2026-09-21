@@ -167,6 +167,16 @@ class Handler(SimpleHTTPRequestHandler):
             con.commit()
             con.close()
             self.send_json({"ok": True})
+        elif path == "/api/reorder":
+            ids = body.get("ids")
+            if not isinstance(ids, list) or any(not ID_RE.match(str(i)) for i in ids):
+                return self.send_json({"error": "ids must be an array of product ids"}, 400)
+            con = connect()
+            for i, pid in enumerate(ids):
+                con.execute("UPDATE products SET position=? WHERE id=?", (i, pid))
+            con.commit()
+            con.close()
+            self.send_json({"ok": True})
         elif path == "/api/upload":
             name = os.path.basename(str(body.get("filename", ""))).lower()
             ext = os.path.splitext(name)[1]

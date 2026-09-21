@@ -52,16 +52,48 @@
   /* ---------- hero ---------- */
   .hero {
     position: relative; min-height: 460px; display: flex; align-items: center; justify-content: center;
-    text-align: center; background-size: cover; background-position: center;
+    text-align: center; overflow: hidden;
   }
-  .hero::before { content: ""; position: absolute; inset: 0; background: rgba(250,248,245,.62); }
-  .hero-in { position: relative; padding: 84px 24px; }
+  .hero-bg {
+    position: absolute; inset: 0; z-index: 0; background-size: cover; background-position: center;
+    animation: kenburns 18s ease-out forwards;
+  }
+  @keyframes kenburns { from { transform: scale(1.09); } to { transform: scale(1); } }
+  .hero::before { content: ""; position: absolute; inset: 0; z-index: 1; background: rgba(250,248,245,.62); }
+  .hero-in { position: relative; z-index: 2; padding: 84px 24px; }
+  .hero-in > * { opacity: 0; animation: fadeUp .9s cubic-bezier(.2,.6,.2,1) forwards; }
+  .hero-in > *:nth-child(1) { animation-delay: .15s; }
+  .hero-in > *:nth-child(2) { animation-delay: .3s; }
+  .hero-in > *:nth-child(3) { animation-delay: .45s; }
+  .hero-in > *:nth-child(4) { animation-delay: .6s; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: none; } }
   .hero .eyebrow { font-size: 12px; letter-spacing: .3em; text-transform: uppercase; color: var(--accent); }
   .hero h1 { font-size: clamp(36px, 5vw, 58px); margin: 18px 0 14px; }
   .hero p { color: var(--ink); max-width: 520px; margin: 0 auto 26px; line-height: 1.7; }
   .hero-cta {
     display: inline-block; background: var(--ink); color: #fff; padding: 14px 34px;
     border-radius: 999px; font-size: 13px; letter-spacing: .16em; text-transform: uppercase;
+    transition: transform .2s, box-shadow .2s;
+  }
+  .hero-cta:hover { transform: translateY(-2px); box-shadow: 0 10px 24px rgba(28,26,23,.2); }
+
+  /* ---------- motion: reveal / transitions ---------- */
+  .reveal { opacity: 0; transform: translateY(26px); transition: opacity .8s ease, transform .8s cubic-bezier(.2,.6,.2,1); }
+  .reveal.in { opacity: 1; transform: none; }
+  #app > * { animation: viewIn .45s ease both; }
+  @keyframes viewIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  header { transition: box-shadow .25s; }
+  header.scrolled { box-shadow: 0 6px 24px rgba(28,26,23,.08); }
+  .cart-count.pulse { animation: pulse .45s ease; }
+  @keyframes pulse { 50% { transform: scale(1.4); } }
+  .sk-card {
+    aspect-ratio: 1/1.35; border-radius: 4px;
+    background: linear-gradient(100deg, #efeae2 40%, #f7f4ee 50%, #efeae2 60%);
+    background-size: 200% 100%; animation: shimmer 1.4s linear infinite;
+  }
+  @keyframes shimmer { to { background-position: -200% 0; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   }
 
   /* ---------- brand story ---------- */
@@ -77,7 +109,8 @@
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 28px; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; transition: transform .25s, box-shadow .25s; cursor: pointer; }
   .card:hover { transform: translateY(-4px); box-shadow: 0 14px 34px rgba(28,26,23,.09); }
-  .card-img { aspect-ratio: 1; width: 100%; object-fit: cover; display: block; background: #f0ebe3; }
+  .card-img { aspect-ratio: 1; width: 100%; object-fit: cover; display: block; background: #f0ebe3; transition: transform .6s cubic-bezier(.2,.6,.2,1); }
+  .card:hover .card-img { transform: scale(1.06); }
   .card-body { padding: 18px 18px 20px; }
   .card-name { font-family: Georgia, serif; font-size: 17px; margin-bottom: 6px; }
   .card-price { font-size: 15px; color: var(--ink); }
@@ -87,7 +120,7 @@
 
   /* ---------- product detail ---------- */
   .detail { max-width: 1080px; margin: 0 auto; padding: 56px 24px 90px; display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
-  .detail-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; border: 1px solid var(--line); background: #f0ebe3; }
+  .detail-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; border: 1px solid var(--line); background: #f0ebe3; transition: opacity .3s ease; }
   .thumbs { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
   .thumb {
     width: 68px; height: 68px; object-fit: cover; border-radius: 4px; cursor: pointer;
@@ -96,7 +129,7 @@
   .thumb.active { opacity: 1; border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
   .pill {
     padding: 9px 18px; border: 1px solid var(--line); border-radius: 999px;
-    background: #fff; font-size: 13px;
+    background: #fff; font-size: 13px; transition: border-color .2s, box-shadow .2s;
   }
   .pill.active { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
   .breadcrumb { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; display: inline-block; }
@@ -189,7 +222,14 @@
   </div>
 </header>
 
-<main id="app"></main>
+<main id="app">
+  <section class="section" style="padding-top:60px">
+    <div class="grid">
+      <div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div>
+      <div class="sk-card"></div><div class="sk-card"></div><div class="sk-card"></div>
+    </div>
+  </section>
+</main>
 
 <footer id="footer">
   <div class="footer-in">
@@ -430,23 +470,28 @@ function addToCart(pid, colorName, qty) {
   const found = cart.find(i => i.key === key);
   if (found) found.qty += qty; else cart.push({ key, pid, colorName, qty });
   saveCart();
+  const badge = $("#cartCount");
+  badge.classList.remove("pulse");
+  void badge.offsetWidth;
+  badge.classList.add("pulse");
   toast("Added to cart");
 }
 function cartCountTotal() { return cart.reduce((n, i) => n + i.qty, 0); }
 
 /* ---- views ---- */
 function viewHome() {
-  const cards = PRODUCTS.map(p => `
-    <div class="card" onclick="location.hash='#/product/${p.id}'">
+  const cards = PRODUCTS.map((p, i) => `
+    <div class="card reveal" style="transition-delay:${Math.min(i * 70, 420)}ms" onclick="location.hash='#/product/${p.id}'">
       <img class="card-img" src="${imgFor(p, p.colors[0].hex)}" alt="${p.name}">
       <div class="card-body">
         <div class="card-name">${p.name}</div>
         <div class="card-price">${fmt.format(p.price)}</div>
-        <div class="dots">${p.colors.map(c => `<span class="dot" style="background:${c.hex}" title="${c.name}"></span>`).join("")}</div>
+        <div class="dots">${p.colors.filter(c => c.hex).map(c => `<span class="dot" style="background:${c.hex}" title="${c.name}"></span>`).join("")}</div>
       </div>
     </div>`).join("");
   return `
-    <section class="hero" style="background-image:url('${STORE.heroImage}')">
+    <section class="hero">
+      <div class="hero-bg" style="background-image:url('${STORE.heroImage}')"></div>
       <div class="hero-in">
         <div class="eyebrow">${STORE.heroEyebrow}</div>
         <h1>${STORE.heroTitle}</h1>
@@ -454,7 +499,7 @@ function viewHome() {
         <a class="hero-cta" href="#shop" onclick="document.querySelector('.section').scrollIntoView({behavior:'smooth'});return false;">Shop the Collection</a>
       </div>
     </section>
-    <section class="story">
+    <section class="story reveal">
       <h2>${STORE.storyTitle}</h2>
       <p>${STORE.story}</p>
       <div class="sig">${STORE.storySig}</div>
@@ -511,7 +556,9 @@ let curProduct = null, curColor = 0, curQty = 1;
 function setMain(i) {
   const imgs = curProduct.images;
   if (!imgs || !imgs.length) return;
-  $("#detailImg").src = imgs[i];
+  const img = $("#detailImg");
+  img.style.opacity = 0;
+  setTimeout(() => { img.src = imgs[i]; img.onload = () => { img.style.opacity = 1; }; }, 160);
   document.querySelectorAll(".thumb").forEach((el, j) => el.classList.toggle("active", j === i));
 }
 function selectColor(i) {
@@ -587,13 +634,27 @@ function toast(msg) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove("show"), 1800);
 }
+/* ---- scroll reveal ---- */
+const revealObserver = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) { e.target.classList.add("in"); revealObserver.unobserve(e.target); }
+  });
+}, { threshold: .12 });
+function setupReveals() {
+  document.querySelectorAll(".reveal:not(.in)").forEach(el => revealObserver.observe(el));
+}
+
 function route() {
   curQty = 1;
   const parts = location.hash.split("/");
   $("#app").innerHTML = parts[1] === "product" ? viewDetail(parts[2]) : viewHome();
+  setupReveals();
   window.scrollTo(0, 0);
 }
 window.addEventListener("hashchange", route);
+window.addEventListener("scroll", () => {
+  document.querySelector("header").classList.toggle("scrolled", window.scrollY > 8);
+}, { passive: true });
 // initial route() + renderCart() happen after the products fetch above
 </script>
 </body>

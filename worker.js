@@ -95,6 +95,16 @@ export default {
       return json({ ok: true });
     }
 
+    if (path === "/api/reorder" && method === "POST") {
+      if (!authed(request, env)) return json({ error: "unauthorized" }, 401);
+      const body = await readJson(request);
+      if (!body || !Array.isArray(body.ids) || body.ids.some(id => !ID_RE.test(String(id))))
+        return json({ error: "ids must be an array of product ids" }, 400);
+      await env.DB.batch(body.ids.map((id, i) =>
+        env.DB.prepare("UPDATE products SET position=? WHERE id=?").bind(i, id)));
+      return json({ ok: true });
+    }
+
     if (path === "/api/upload" && method === "POST") {
       if (!authed(request, env)) return json({ error: "unauthorized" }, 401);
       const body = await readJson(request);

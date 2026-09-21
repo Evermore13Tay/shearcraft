@@ -5,65 +5,197 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hui Tong Admin</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; background: #f4f2ee; color: #1c1a17; }
-  .wrap { max-width: 860px; margin: 0 auto; padding: 32px 20px 80px; }
-  h1 { font-family: Georgia, serif; font-weight: 400; font-size: 28px; }
-  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-  .topbar a { font-size: 13px; color: #7a746c; }
-  .card { background: #fff; border: 1px solid #e6e0d8; border-radius: 8px; padding: 20px; margin-bottom: 18px; }
-  .row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-  label { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #7a746c; display: block; margin-bottom: 4px; }
-  input[type=text], input[type=number], textarea {
-    font: inherit; padding: 9px 12px; border: 1px solid #d8d2c8; border-radius: 6px; background: #fff; width: 100%;
+  :root {
+    --bg: #f4f2ee; --card: #fff; --ink: #1c1a17; --muted: #7a746c;
+    --line: #e6e0d8; --accent: #a8834f; --danger: #b03a2e; --ok: #3d7a4f;
   }
-  textarea { min-height: 64px; resize: vertical; }
-  .field { flex: 1; min-width: 140px; }
-  .field.price { max-width: 130px; }
-  .color-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
-  .color-row input[type=text] { flex: 1; }
-  .color-row input[type=color] { width: 40px; height: 36px; border: 1px solid #d8d2c8; border-radius: 6px; padding: 2px; background: #fff; }
-  button { font: inherit; cursor: pointer; border-radius: 6px; padding: 9px 16px; border: 1px solid #d8d2c8; background: #fff; }
-  button.primary { background: #1c1a17; color: #fff; border-color: #1c1a17; }
-  button.danger { color: #b03a2e; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; background: var(--bg); color: var(--ink); -webkit-font-smoothing: antialiased; }
+  h1, .serif { font-family: Georgia, serif; font-weight: 400; }
+  button { font: inherit; cursor: pointer; border-radius: 8px; padding: 9px 16px; border: 1px solid var(--line); background: #fff; transition: all .15s; }
+  button:hover { border-color: var(--ink); }
+  button.primary { background: var(--ink); color: #fff; border-color: var(--ink); }
+  button.primary:hover { background: #000; }
+  button.danger { color: var(--danger); }
+  button.danger:hover { border-color: var(--danger); }
   button.small { padding: 5px 10px; font-size: 13px; }
-  .img-preview { width: 72px; height: 72px; object-fit: cover; border-radius: 6px; border: 1px solid #e6e0d8; background: #f0ebe3; }
-  .actions { display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #eee; padding-top: 14px; margin-top: 6px; }
-  .toast { position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 70px); background: #1c1a17; color: #fff; padding: 10px 24px; border-radius: 999px; font-size: 14px; transition: transform .25s; }
+  input[type=text], input[type=number], input[type=password], textarea {
+    font: inherit; padding: 10px 13px; border: 1px solid var(--line); border-radius: 8px;
+    background: #fff; width: 100%; transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus, textarea:focus { outline: none; border-color: var(--ink); box-shadow: 0 0 0 3px rgba(28,26,23,.08); }
+  textarea { min-height: 72px; resize: vertical; }
+  label { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); display: block; margin-bottom: 5px; }
+  .muted { font-size: 13px; color: var(--muted); }
+
+  /* ---------- login gate ---------- */
+  #gate { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .gate-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 40px; width: 100%; max-width: 380px; text-align: center; box-shadow: 0 20px 60px rgba(28,26,23,.08); }
+  .gate-card .logo { font-family: Georgia, serif; font-size: 24px; letter-spacing: .12em; margin-bottom: 6px; }
+  .gate-card .logo span { color: var(--accent); }
+  .gate-card p { margin: 14px 0; }
+  .gate-card.shake { animation: shake .4s; }
+  @keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+
+  /* ---------- topbar ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 20; background: rgba(244,242,238,.9); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar-in { max-width: 900px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 14px; }
+  .topbar .logo { font-family: Georgia, serif; font-size: 20px; letter-spacing: .1em; }
+  .topbar .logo span { color: var(--accent); }
+  .topbar .spacer { flex: 1; }
+  .save-status { font-size: 12px; color: var(--muted); }
+  .save-status.dirty { color: var(--accent); font-weight: 600; }
+  .topbar a { font-size: 13px; color: var(--muted); text-decoration: none; }
+  .topbar a:hover { color: var(--ink); }
+
+  .wrap { max-width: 900px; margin: 0 auto; padding: 24px 20px 120px; }
+
+  /* ---------- toolbar ---------- */
+  .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  .toolbar .search { flex: 1; min-width: 160px; position: relative; }
+  .toolbar .search input { padding-left: 34px; }
+  .toolbar .search::before { content: "⌕"; position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); font-size: 18px; }
+  .add-form { display: flex; gap: 10px; flex-wrap: wrap; }
+  .add-form input[name=name] { width: 220px; }
+  .add-form input[name=price] { width: 110px; }
+
+  /* ---------- product rows ---------- */
+  .prow {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin-bottom: 12px;
+    transition: box-shadow .2s, border-color .2s;
+  }
+  .prow:hover { box-shadow: 0 6px 24px rgba(28,26,23,.07); }
+  .prow.dragging { opacity: .4; }
+  .prow.drag-over { border-color: var(--accent); border-style: dashed; }
+  .prow-head { display: flex; align-items: center; gap: 14px; padding: 14px 16px; cursor: pointer; user-select: none; }
+  .drag-handle { color: #c8c2b8; cursor: grab; font-size: 16px; padding: 4px 2px; touch-action: none; }
+  .prow-cover { width: 52px; height: 52px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); background: #f0ebe3; flex-shrink: 0; }
+  .prow-info { flex: 1; min-width: 0; }
+  .prow-name { font-family: Georgia, serif; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .prow-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .prow-price { font-size: 16px; font-weight: 600; }
+  .prow-chevron { color: var(--muted); transition: transform .2s; font-size: 13px; }
+  .prow.open .prow-chevron { transform: rotate(180deg); }
+  .dirty-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: none; }
+  .prow.dirty .dirty-dot { display: block; }
+
+  /* ---------- editor ---------- */
+  .editor { border-top: 1px solid var(--line); padding: 20px; display: none; }
+  .prow.open .editor { display: block; }
+  .field-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .field { flex: 1; min-width: 150px; }
+  .field.price { max-width: 140px; }
+
+  .dropzone {
+    border: 2px dashed var(--line); border-radius: 12px; padding: 18px; text-align: center;
+    color: var(--muted); font-size: 13px; cursor: pointer; transition: all .15s; margin-bottom: 12px;
+  }
+  .dropzone:hover, .dropzone.over { border-color: var(--accent); color: var(--ink); background: #fbf9f6; }
+  .img-grid { display: flex; gap: 10px; flex-wrap: wrap; }
+  .img-cell { position: relative; width: 84px; }
+  .img-cell img { width: 84px; height: 84px; object-fit: cover; border-radius: 8px; border: 1px solid var(--line); display: block; cursor: grab; }
+  .img-cell.dragging { opacity: .4; }
+  .img-cell .del {
+    position: absolute; top: -7px; right: -7px; width: 22px; height: 22px; border-radius: 50%;
+    background: var(--ink); color: #fff; border: none; font-size: 13px; line-height: 1; padding: 0;
+    opacity: 0; transition: opacity .15s;
+  }
+  .img-cell:hover .del { opacity: 1; }
+  .img-cell .cover-badge {
+    position: absolute; bottom: 4px; left: 4px; background: var(--ink); color: #fff;
+    font-size: 10px; padding: 2px 7px; border-radius: 999px; letter-spacing: .05em;
+  }
+  .img-cell .up { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,.7); border-radius: 8px; font-size: 12px; color: var(--muted); }
+
+  .variant-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .variant-row input[type=text] { flex: 1; }
+  .variant-row input[type=color] { width: 42px; height: 38px; border: 1px solid var(--line); border-radius: 8px; padding: 2px; background: #fff; }
+  .variant-row input[type=color]:disabled { opacity: .3; }
+  .swatch-toggle { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+  .editor-actions { display: flex; gap: 10px; justify-content: space-between; border-top: 1px solid var(--line); padding-top: 16px; margin-top: 8px; }
+  .savebar { display: flex; gap: 10px; align-items: center; }
+  .save-hint { font-size: 12px; color: var(--accent); }
+
+  /* ---------- modal ---------- */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(28,26,23,.45); z-index: 50;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal { background: #fff; border-radius: 14px; padding: 28px; max-width: 360px; width: 100%; text-align: center; animation: pop .2s ease; }
+  @keyframes pop { from { transform: scale(.92); opacity: 0; } }
+  .modal h3 { font-family: Georgia, serif; font-weight: 400; margin-bottom: 8px; }
+  .modal p { font-size: 14px; color: var(--muted); margin-bottom: 20px; }
+  .modal .btns { display: flex; gap: 10px; justify-content: center; }
+  .modal .btn-danger-solid { background: var(--danger); color: #fff; border-color: var(--danger); }
+
+  /* ---------- toast ---------- */
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 80px);
+    background: var(--ink); color: #fff; padding: 11px 24px; border-radius: 999px;
+    font-size: 14px; transition: transform .25s; z-index: 60; box-shadow: 0 10px 30px rgba(0,0,0,.2);
+  }
   .toast.show { transform: translate(-50%, 0); }
-  .toast.err { background: #b03a2e; }
-  #gate { max-width: 360px; margin: 18vh auto; text-align: center; }
-  #gate .card { padding: 32px; }
-  #gate input { margin: 14px 0; text-align: center; }
-  .muted { font-size: 13px; color: #7a746c; }
-  .id-line { font-size: 12px; color: #a09a90; margin-bottom: 12px; }
+  .toast.err { background: var(--danger); }
+
+  .empty { text-align: center; color: var(--muted); padding: 60px 0; }
+
+  @media (max-width: 640px) {
+    .prow-head { gap: 10px; padding: 12px; }
+    .prow-cover { width: 44px; height: 44px; }
+    .add-form input[name=name], .add-form input[name=price] { width: 100%; }
+    .field.price { max-width: none; }
+    .gate-card { padding: 28px 22px; }
+  }
 </style>
 </head>
 <body>
 
 <div id="gate">
-  <div class="card">
-    <h1>Admin</h1>
+  <div class="gate-card" id="gateCard">
+    <div class="logo">HUI <span>TONG</span></div>
+    <p class="muted">Store Admin</p>
     <input type="password" id="pw" placeholder="Admin password" onkeydown="if(event.key==='Enter')login()">
+    <div style="height:12px"></div>
     <button class="primary" style="width:100%" onclick="login()">Sign in</button>
-    <p class="muted" style="margin-top:12px">Default is <code>change-me</code> unless ADMIN_PASSWORD was set.</p>
   </div>
 </div>
 
-<div class="wrap" id="main" style="display:none">
+<div id="app" style="display:none">
   <div class="topbar">
-    <h1>Products</h1>
-    <a href="/" target="_blank">View store ↗</a>
-  </div>
-  <div class="card">
-    <div class="row">
-      <div class="field"><label>Name</label><input type="text" id="newName" placeholder="New product name"></div>
-      <div class="field price"><label>Price (USD)</label><input type="number" id="newPrice" min="0" step="0.01" placeholder="0.00"></div>
-      <div style="align-self:flex-end"><button class="primary" onclick="addProduct()">+ Add product</button></div>
+    <div class="topbar-in">
+      <div class="logo">HUI <span>TONG</span> <span class="muted" style="font-size:12px;letter-spacing:0">Admin</span></div>
+      <div class="spacer"></div>
+      <span class="save-status" id="saveStatus"></span>
+      <a href="/" target="_blank">View store ↗</a>
     </div>
-    <p class="muted">Creates a draft with one default color — edit details below after adding.</p>
   </div>
-  <div id="list"></div>
+  <div class="wrap">
+    <div class="toolbar">
+      <div class="search"><input type="text" id="search" placeholder="Search products…" oninput="onSearch(this.value)"></div>
+      <div class="add-form">
+        <input type="text" name="name" id="newName" placeholder="New product name">
+        <input type="number" name="price" id="newPrice" min="0" step="0.01" placeholder="Price">
+        <button class="primary" onclick="addProduct()">+ Add</button>
+      </div>
+    </div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h3 id="modalTitle">Delete product?</h3>
+    <p id="modalText"></p>
+    <div class="btns">
+      <button onclick="closeModal()">Cancel</button>
+      <button class="btn-danger-solid" id="modalConfirm">Delete</button>
+    </div>
+  </div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -71,7 +203,11 @@
 <script>
 let PW = sessionStorage.getItem("adminPw") || "";
 let products = [];
+let expandedId = null;
+let dirtyIds = new Set();
+let searchQuery = "";
 
+/* ---------- api ---------- */
 function api(path, opts = {}) {
   opts.headers = Object.assign({ "X-Admin-Password": PW }, opts.headers);
   if (opts.json) { opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(opts.json); delete opts.json; }
@@ -82,105 +218,189 @@ function api(path, opts = {}) {
   });
 }
 
-function toast(msg, isErr) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.className = "toast show" + (isErr ? " err" : "");
-  setTimeout(() => t.classList.remove("show"), 2200);
-}
-
+/* ---------- auth ---------- */
 function login() {
   PW = document.getElementById("pw").value;
-  api("/api/check").then(() => {
-    sessionStorage.setItem("adminPw", PW);
-    document.getElementById("gate").style.display = "none";
-    document.getElementById("main").style.display = "";
-    load();
-  }).catch(() => toast("Wrong password", true));
+  api("/api/check").then(enterApp).catch(() => {
+    const card = document.getElementById("gateCard");
+    card.classList.remove("shake");
+    void card.offsetWidth;
+    card.classList.add("shake");
+  });
+}
+function enterApp() {
+  sessionStorage.setItem("adminPw", PW);
+  document.getElementById("gate").style.display = "none";
+  document.getElementById("app").style.display = "";
+  load();
 }
 
+/* ---------- data ---------- */
 function load() {
-  api("/api/products").then(d => { products = d; render(); }).catch(e => toast(e.message, true));
+  api("/api/products").then(d => { products = d; dirtyIds.clear(); render(); updateStatus(); })
+    .catch(e => toast(e.message, true));
 }
 
+function updateStatus() {
+  const el = document.getElementById("saveStatus");
+  if (dirtyIds.size) {
+    el.textContent = dirtyIds.size + " unsaved";
+    el.className = "save-status dirty";
+  } else {
+    el.textContent = "All saved";
+    el.className = "save-status";
+  }
+}
+
+/* ---------- render ---------- */
 function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
-
-function render() {
-  document.getElementById("list").innerHTML = products.map((p, i) => `
-    <div class="card" data-id="${esc(p.id)}">
-      <div class="id-line">id: ${esc(p.id)} · <a href="/#/product/${esc(p.id)}" target="_blank">view ↗</a></div>
-      <div class="row">
-        <div class="field"><label>Name</label><input type="text" data-f="name" value="${esc(p.name)}"></div>
-        <div class="field price"><label>Price (USD)</label><input type="number" data-f="price" min="0" step="0.01" value="${p.price}"></div>
-      </div>
-      <div class="row">
-        <div class="field"><label>Description</label><textarea data-f="description">${esc(p.description)}</textarea></div>
-      </div>
-      <div class="row" style="align-items:flex-end">
-        <div class="field">
-          <label>Images (first = cover, up to 6)</label>
-          <div data-images style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">
-            ${(p.images || []).map(src => `
-              <div style="position:relative" data-imgwrap data-path="${esc(src)}">
-                <img class="img-preview" src="${src}">
-                <button class="small danger" style="position:absolute;top:-6px;right:-6px;border-radius:50%;padding:2px 7px" onclick="this.parentElement.remove()">×</button>
-              </div>`).join("")}
-          </div>
-          <input type="file" accept="image/*" onchange="uploadImg(this, ${i})">
-        </div>
-      </div>
-      <div class="row" style="margin-top:6px"><div class="field">
-        <label>Variants (colors / styles)</label>
-        <div data-colors>
-          ${p.colors.map((c, j) => `
-            <div class="color-row">
-              <input type="text" value="${esc(c.name)}" placeholder="Name (e.g. Gold, or Serrated 5mm)">
-              <input type="color" value="${esc(c.hex) || "#c9c9c9"}" ${c.hex ? "" : "disabled"}>
-              <label class="muted" style="display:flex;align-items:center;gap:4px;text-transform:none;letter-spacing:0"><input type="checkbox" ${c.hex ? "checked" : ""} onchange="this.previousElementSibling.disabled=!this.checked"> swatch</label>
-              <button class="small danger" onclick="this.parentElement.remove()">×</button>
-            </div>`).join("")}
-        </div>
-        <button class="small" onclick="addColor(${i})">+ variant</button>
-      </div></div>
-      <div class="actions">
-        <button class="danger" onclick="del(${i})">Delete</button>
-        <button class="primary" onclick="save(${i})">Save</button>
-      </div>
-    </div>`).join("");
-}
+const fmt = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
 
 function placeholderImg(p) {
   const initial = (p.name.replace(/[^A-Za-z]/g, "") || "P")[0].toUpperCase();
   return "data:image/svg+xml," + encodeURIComponent(
-    `<svg xmlns='http://www.w3.org/2000/svg' width='144' height='144'><rect width='144' height='144' fill='#e8e2d8'/><text x='72' y='88' font-family='Georgia' font-size='52' fill='#1c1a17' text-anchor='middle'>${initial}</text></svg>`);
+    `<svg xmlns='http://www.w3.org/2000/svg' width='104' height='104'><rect width='104' height='104' fill='#e8e2d8'/><text x='52' y='64' font-family='Georgia' font-size='40' fill='#1c1a17' text-anchor='middle'>${initial}</text></svg>`);
 }
 
-function cardEl(i) { return document.querySelectorAll("#list .card")[i]; }
+function visible() {
+  const q = searchQuery.toLowerCase();
+  return products.filter(p => !q || p.name.toLowerCase().includes(q) || p.id.includes(q));
+}
 
-function gather(i) {
-  const el = cardEl(i);
+function render() {
+  const list = visible();
+  document.getElementById("list").innerHTML = list.length ? list.map(p => rowHtml(p)).join("")
+    : `<div class="empty">No products match.</div>`;
+  list.forEach(p => { if (p.id === expandedId) attachEditorDnd(p.id); });
+  attachRowDnd();
+}
+
+function rowHtml(p) {
+  const open = p.id === expandedId;
+  const dirty = dirtyIds.has(p.id);
+  return `
+  <div class="prow${open ? " open" : ""}${dirty ? " dirty" : ""}" data-id="${esc(p.id)}" draggable="true">
+    <div class="prow-head" onclick="toggle('${esc(p.id)}')">
+      <span class="drag-handle" title="Drag to reorder" onclick="event.stopPropagation()">⠿</span>
+      <img class="prow-cover" src="${(p.images && p.images[0]) || placeholderImg(p)}">
+      <div class="prow-info">
+        <div class="prow-name">${esc(p.name)}</div>
+        <div class="prow-meta">${esc(p.id)} · ${p.colors.length} variant${p.colors.length > 1 ? "s" : ""} · ${(p.images || []).length} image${(p.images || []).length === 1 ? "" : "s"}</div>
+      </div>
+      <span class="dirty-dot"></span>
+      <div class="prow-price">${fmt.format(p.price)}</div>
+      <span class="prow-chevron">▼</span>
+    </div>
+    ${open ? editorHtml(p) : `<div class="editor"></div>`}
+  </div>`;
+}
+
+function editorHtml(p) {
+  return `
+  <div class="editor" data-editor="${esc(p.id)}">
+    <div class="field-row">
+      <div class="field"><label>Name</label><input type="text" data-f="name" value="${esc(p.name)}" oninput="markDirty('${esc(p.id)}')"></div>
+      <div class="field price"><label>Price (USD)</label><input type="number" data-f="price" min="0" step="0.01" value="${p.price}" oninput="markDirty('${esc(p.id)}')"></div>
+    </div>
+    <div class="field-row">
+      <div class="field"><label>Description</label><textarea data-f="description" oninput="markDirty('${esc(p.id)}')">${esc(p.description)}</textarea></div>
+    </div>
+    <div class="field-row"><div class="field">
+      <label>Images — drag to reorder, first is the cover</label>
+      <div class="dropzone" data-dropzone onclick="browseFiles('${esc(p.id)}')">
+        Drop images here or <u>browse</u> — multiple allowed
+        <input type="file" accept="image/*" multiple style="display:none" onchange="uploadFiles(this.files, '${esc(p.id)}'); this.value=''">
+      </div>
+      <div class="img-grid" data-images>
+        ${(p.images || []).map((src, j) => imgCell(src, j === 0, p.id)).join("")}
+      </div>
+    </div></div>
+    <div class="field-row"><div class="field">
+      <label>Variants (colors / styles)</label>
+      <div data-colors>
+        ${p.colors.map(c => variantRow(c.name, c.hex, p.id)).join("")}
+      </div>
+      <button class="small" onclick="addVariant('${esc(p.id)}')">+ variant</button>
+    </div></div>
+    <div class="editor-actions">
+      <button class="danger" onclick="askDelete('${esc(p.id)}')">Delete product</button>
+      <div class="savebar">
+        <span class="save-hint" data-savehint></span>
+        <button onclick="discard('${esc(p.id)}')">Discard</button>
+        <button class="primary" onclick="save('${esc(p.id)}')">Save</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function imgCell(src, isCover, pid) {
+  return `
+    <div class="img-cell" data-imgwrap data-path="${esc(src)}" draggable="true">
+      <img src="${esc(src)}" draggable="false">
+      ${isCover ? `<span class="cover-badge">Cover</span>` : ""}
+      <button class="del" onclick="removeImg(this, '${esc(pid)}')">×</button>
+    </div>`;
+}
+
+function variantRow(name, hex, pid) {
+  return `
+    <div class="variant-row">
+      <input type="text" value="${esc(name)}" placeholder="Name (e.g. Gold, or Serrated 5mm)" oninput="markDirty('${esc(pid)}')">
+      <input type="color" value="${esc(hex) || "#c9c9c9"}" ${hex ? "" : "disabled"} oninput="markDirty('${esc(pid)}')">
+      <label class="swatch-toggle"><input type="checkbox" ${hex ? "checked" : ""} onchange="this.parentElement.previousElementSibling.disabled=!this.checked; markDirty('${esc(pid)}')"> swatch</label>
+      <button class="small danger" onclick="this.parentElement.remove(); markDirty('${esc(pid)}')">×</button>
+    </div>`;
+}
+
+/* ---------- interactions ---------- */
+function toggle(id) {
+  expandedId = expandedId === id ? null : id;
+  render();
+}
+
+function markDirty(id) {
+  dirtyIds.add(id);
+  const row = document.querySelector(`.prow[data-id="${id}"]`);
+  if (row) row.classList.add("dirty");
+  const hint = document.querySelector(`[data-editor="${id}"] [data-savehint]`);
+  if (hint) hint.textContent = "Unsaved changes";
+  updateStatus();
+}
+
+function editorEl(id) { return document.querySelector(`[data-editor="${id}"]`); }
+
+function gather(id) {
+  const el = editorEl(id);
   const val = f => el.querySelector(`[data-f="${f}"]`).value;
   const images = [...el.querySelectorAll("[data-imgwrap]")].map(w => w.dataset.path);
-  const colors = [...el.querySelectorAll("[data-colors] .color-row")].map(r => ({
+  const colors = [...el.querySelectorAll("[data-colors] .variant-row")].map(r => ({
     name: r.children[0].value.trim(),
     hex: r.querySelector("input[type=checkbox]").checked ? r.querySelector("input[type=color]").value : ""
   })).filter(c => c.name);
-  return { id: products[i].id, name: val("name"), price: parseFloat(val("price")),
-           description: val("description"), images, colors };
+  return { id, name: val("name"), price: parseFloat(val("price")), description: val("description"), images, colors };
 }
 
-function save(i) {
-  const p = gather(i);
-  api("/api/products/" + p.id, { method: "PUT", json: p })
-    .then(() => { toast("Saved"); products[i] = p; render(); })
-    .catch(e => toast(e.message, true));
+function save(id) {
+  const p = gather(id);
+  api("/api/products/" + id, { method: "PUT", json: p }).then(() => {
+    const i = products.findIndex(x => x.id === id);
+    products[i] = p;
+    dirtyIds.delete(id);
+    toast("Saved");
+    render();
+    updateStatus();
+  }).catch(e => toast(e.message, true));
 }
 
-function del(i) {
-  if (!confirm(`Delete "${products[i].name}"?`)) return;
-  api("/api/products/" + products[i].id, { method: "DELETE" })
-    .then(() => { toast("Deleted"); load(); })
-    .catch(e => toast(e.message, true));
+function discard(id) {
+  dirtyIds.delete(id);
+  render();
+  updateStatus();
+}
+
+function addVariant(id) {
+  editorEl(id).querySelector("[data-colors]").insertAdjacentHTML("beforeend", variantRow("", "#c9c9c9", id));
+  markDirty(id);
 }
 
 function addProduct() {
@@ -196,44 +416,153 @@ function addProduct() {
   }}).then(() => {
     document.getElementById("newName").value = "";
     document.getElementById("newPrice").value = "";
-    toast("Added — edit details below");
+    expandedId = finalId;
+    toast("Product added");
     load();
   }).catch(e => toast(e.message, true));
 }
 
-function addColor(i) {
-  const box = cardEl(i).querySelector("[data-colors]");
-  box.insertAdjacentHTML("beforeend",
-    `<div class="color-row"><input type="text" placeholder="Color name"><input type="color" value="#c9c9c9"><button class="small danger" onclick="this.parentElement.remove()">×</button></div>`);
+/* ---------- delete modal ---------- */
+let pendingDelete = null;
+function askDelete(id) {
+  pendingDelete = id;
+  const p = products.find(x => x.id === id);
+  document.getElementById("modalText").textContent = `"${p.name}" will be permanently removed from the store.`;
+  document.getElementById("modal").classList.add("open");
 }
-
-function uploadImg(input, i) {
-  const file = input.files[0];
-  if (!file) return;
-  if (file.size > 5_000_000) return toast("Image too large (max ~5MB)", true);
-  const reader = new FileReader();
-  reader.onload = () => {
-    api("/api/upload", { method: "POST", json: { filename: file.name, data: reader.result.split(",")[1] } })
-      .then(d => {
-        cardEl(i).querySelector("[data-images]").insertAdjacentHTML("beforeend", `
-          <div style="position:relative" data-imgwrap data-path="${d.path}">
-            <img class="img-preview" src="${d.path}">
-            <button class="small danger" style="position:absolute;top:-6px;right:-6px;border-radius:50%;padding:2px 7px" onclick="this.parentElement.remove()">×</button>
-          </div>`);
-        input.value = "";
-        toast("Image uploaded — click Save");
-      })
-      .catch(e => toast(e.message, true));
-  };
-  reader.readAsDataURL(file);
-}
-
-if (PW) {
-  api("/api/check").then(() => {
-    document.getElementById("gate").style.display = "none";
-    document.getElementById("main").style.display = "";
+function closeModal() { document.getElementById("modal").classList.remove("open"); pendingDelete = null; }
+document.getElementById("modalConfirm").onclick = () => {
+  const id = pendingDelete;
+  closeModal();
+  api("/api/products/" + id, { method: "DELETE" }).then(() => {
+    if (expandedId === id) expandedId = null;
+    toast("Deleted");
     load();
-  }).catch(() => sessionStorage.removeItem("adminPw"));
+  }).catch(e => toast(e.message, true));
+};
+document.getElementById("modal").addEventListener("click", e => { if (e.target.id === "modal") closeModal(); });
+
+/* ---------- images: upload + reorder ---------- */
+function browseFiles(id) { editorEl(id).querySelector('input[type=file]').click(); }
+
+function uploadFiles(files, id) {
+  const grid = editorEl(id).querySelector("[data-images]");
+  [...files].forEach(file => {
+    if (file.size > 5_000_000) return toast(`${file.name}: too large (max ~5MB)`, true);
+    const cell = document.createElement("div");
+    cell.className = "img-cell";
+    cell.innerHTML = `<div class="up">Uploading…</div>`;
+    grid.appendChild(cell);
+    const reader = new FileReader();
+    reader.onload = () => {
+      api("/api/upload", { method: "POST", json: { filename: file.name, data: reader.result.split(",")[1] } })
+        .then(d => {
+          cell.outerHTML = imgCell(d.path, false, id);
+          attachImgDnd(id);
+          markDirty(id);
+          toast("Image uploaded — click Save");
+        })
+        .catch(e => { cell.remove(); toast(e.message, true); });
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function removeImg(btn, pid) {
+  btn.closest("[data-imgwrap]").remove();
+  refreshCoverBadge(pid);
+  markDirty(pid);
+}
+
+function refreshCoverBadge(pid) {
+  const wraps = editorEl(pid).querySelectorAll("[data-imgwrap]");
+  wraps.forEach((w, j) => {
+    const badge = w.querySelector(".cover-badge");
+    if (j === 0 && !badge) w.insertAdjacentHTML("beforeend", `<span class="cover-badge">Cover</span>`);
+    if (j > 0 && badge) badge.remove();
+  });
+}
+
+function attachEditorDnd(id) {
+  const dz = editorEl(id).querySelector("[data-dropzone]");
+  dz.addEventListener("dragover", e => { e.preventDefault(); dz.classList.add("over"); });
+  dz.addEventListener("dragleave", () => dz.classList.remove("over"));
+  dz.addEventListener("drop", e => {
+    e.preventDefault();
+    dz.classList.remove("over");
+    if (e.dataTransfer.files.length) uploadFiles(e.dataTransfer.files, id);
+  });
+  attachImgDnd(id);
+}
+
+function attachImgDnd(id) {
+  const grid = editorEl(id).querySelector("[data-images]");
+  let dragged = null;
+  grid.querySelectorAll(".img-cell").forEach(cell => {
+    cell.addEventListener("dragstart", e => { e.stopPropagation(); dragged = cell; cell.classList.add("dragging"); });
+    cell.addEventListener("dragend", () => { cell.classList.remove("dragging"); dragged = null; });
+    cell.addEventListener("dragover", e => e.preventDefault());
+    cell.addEventListener("drop", e => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!dragged || dragged === cell) return;
+      const cells = [...grid.querySelectorAll(".img-cell")];
+      cells.indexOf(dragged) < cells.indexOf(cell) ? cell.after(dragged) : cell.before(dragged);
+      refreshCoverBadge(id);
+      markDirty(id);
+    });
+  });
+}
+
+/* ---------- product reorder ---------- */
+function attachRowDnd() {
+  const list = document.getElementById("list");
+  let dragged = null;
+  list.querySelectorAll(".prow").forEach(row => {
+    row.addEventListener("dragstart", e => {
+      if (e.target.closest(".editor")) return;  // only via handle/head area
+      dragged = row;
+      row.classList.add("dragging");
+    });
+    row.addEventListener("dragend", () => { row.classList.remove("dragging"); dragged = null; list.querySelectorAll(".drag-over").forEach(r => r.classList.remove("drag-over")); });
+    row.addEventListener("dragover", e => { e.preventDefault(); if (row !== dragged) row.classList.add("drag-over"); });
+    row.addEventListener("dragleave", () => row.classList.remove("drag-over"));
+    row.addEventListener("drop", e => {
+      e.preventDefault();
+      if (!dragged || dragged === row) return;
+      const rows = [...list.querySelectorAll(".prow")];
+      rows.indexOf(dragged) < rows.indexOf(row) ? row.after(dragged) : row.before(dragged);
+      persistOrder();
+    });
+  });
+}
+
+function persistOrder() {
+  const ids = [...document.getElementById("list").querySelectorAll(".prow")].map(r => r.dataset.id);
+  // keep any search-hidden products at their relative tail positions
+  const hidden = products.filter(p => !ids.includes(p.id)).map(p => p.id);
+  const all = ids.concat(hidden);
+  api("/api/reorder", { method: "POST", json: { ids: all } })
+    .then(() => toast("Order saved"))
+    .catch(e => { toast(e.message, true); load(); });
+}
+
+/* ---------- search ---------- */
+function onSearch(q) { searchQuery = q; render(); }
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(msg, isErr) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show" + (isErr ? " err" : "");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+/* ---------- boot ---------- */
+if (PW) {
+  api("/api/check").then(enterApp).catch(() => sessionStorage.removeItem("adminPw"));
 }
 </script>
 </body>
