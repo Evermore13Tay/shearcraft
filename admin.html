@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShearCraft Admin</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; background: #f4f2ee; color: #1c1a17; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 32px 20px 80px; }
+  h1 { font-family: Georgia, serif; font-weight: 400; font-size: 28px; }
+  .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+  .topbar a { font-size: 13px; color: #7a746c; }
+  .card { background: #fff; border: 1px solid #e6e0d8; border-radius: 8px; padding: 20px; margin-bottom: 18px; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  label { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: #7a746c; display: block; margin-bottom: 4px; }
+  input[type=text], input[type=number], textarea {
+    font: inherit; padding: 9px 12px; border: 1px solid #d8d2c8; border-radius: 6px; background: #fff; width: 100%;
+  }
+  textarea { min-height: 64px; resize: vertical; }
+  .field { flex: 1; min-width: 140px; }
+  .field.price { max-width: 130px; }
+  .color-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+  .color-row input[type=text] { flex: 1; }
+  .color-row input[type=color] { width: 40px; height: 36px; border: 1px solid #d8d2c8; border-radius: 6px; padding: 2px; background: #fff; }
+  button { font: inherit; cursor: pointer; border-radius: 6px; padding: 9px 16px; border: 1px solid #d8d2c8; background: #fff; }
+  button.primary { background: #1c1a17; color: #fff; border-color: #1c1a17; }
+  button.danger { color: #b03a2e; }
+  button.small { padding: 5px 10px; font-size: 13px; }
+  .img-preview { width: 72px; height: 72px; object-fit: cover; border-radius: 6px; border: 1px solid #e6e0d8; background: #f0ebe3; }
+  .actions { display: flex; gap: 10px; justify-content: flex-end; border-top: 1px solid #eee; padding-top: 14px; margin-top: 6px; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translate(-50%, 70px); background: #1c1a17; color: #fff; padding: 10px 24px; border-radius: 999px; font-size: 14px; transition: transform .25s; }
+  .toast.show { transform: translate(-50%, 0); }
+  .toast.err { background: #b03a2e; }
+  #gate { max-width: 360px; margin: 18vh auto; text-align: center; }
+  #gate .card { padding: 32px; }
+  #gate input { margin: 14px 0; text-align: center; }
+  .muted { font-size: 13px; color: #7a746c; }
+  .id-line { font-size: 12px; color: #a09a90; margin-bottom: 12px; }
+</style>
+</head>
+<body>
+
+<div id="gate">
+  <div class="card">
+    <h1>Admin</h1>
+    <input type="password" id="pw" placeholder="Admin password" onkeydown="if(event.key==='Enter')login()">
+    <button class="primary" style="width:100%" onclick="login()">Sign in</button>
+    <p class="muted" style="margin-top:12px">Default is <code>change-me</code> unless ADMIN_PASSWORD was set.</p>
+  </div>
+</div>
+
+<div class="wrap" id="main" style="display:none">
+  <div class="topbar">
+    <h1>Products</h1>
+    <a href="/" target="_blank">View store ↗</a>
+  </div>
+  <div class="card">
+    <div class="row">
+      <div class="field"><label>Name</label><input type="text" id="newName" placeholder="New product name"></div>
+      <div class="field price"><label>Price (USD)</label><input type="number" id="newPrice" min="0" step="0.01" placeholder="0.00"></div>
+      <div style="align-self:flex-end"><button class="primary" onclick="addProduct()">+ Add product</button></div>
+    </div>
+    <p class="muted">Creates a draft with one default color — edit details below after adding.</p>
+  </div>
+  <div id="list"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let PW = sessionStorage.getItem("adminPw") || "";
+let products = [];
+
+function api(path, opts = {}) {
+  opts.headers = Object.assign({ "X-Admin-Password": PW }, opts.headers);
+  if (opts.json) { opts.headers["Content-Type"] = "application/json"; opts.body = JSON.stringify(opts.json); delete opts.json; }
+  return fetch(path, opts).then(async r => {
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data.error || ("HTTP " + r.status));
+    return data;
+  });
+}
+
+function toast(msg, isErr) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "toast show" + (isErr ? " err" : "");
+  setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+function login() {
+  PW = document.getElementById("pw").value;
+  api("/api/check").then(() => {
+    sessionStorage.setItem("adminPw", PW);
+    document.getElementById("gate").style.display = "none";
+    document.getElementById("main").style.display = "";
+    load();
+  }).catch(() => toast("Wrong password", true));
+}
+
+function load() {
+  api("/api/products").then(d => { products = d; render(); }).catch(e => toast(e.message, true));
+}
+
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;"); }
+
+function render() {
+  document.getElementById("list").innerHTML = products.map((p, i) => `
+    <div class="card" data-id="${esc(p.id)}">
+      <div class="id-line">id: ${esc(p.id)} · <a href="/#/product/${esc(p.id)}" target="_blank">view ↗</a></div>
+      <div class="row">
+        <div class="field"><label>Name</label><input type="text" data-f="name" value="${esc(p.name)}"></div>
+        <div class="field price"><label>Price (USD)</label><input type="number" data-f="price" min="0" step="0.01" value="${p.price}"></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Description</label><textarea data-f="description">${esc(p.description)}</textarea></div>
+      </div>
+      <div class="row" style="align-items:flex-end">
+        <div><label>Image</label><img class="img-preview" data-img src="${p.image || placeholderImg(p)}" onerror="this.src=''"></div>
+        <div class="field">
+          <input type="file" accept="image/*" onchange="uploadImg(this, ${i})">
+          <input type="hidden" data-f="image" value="${esc(p.image)}">
+        </div>
+        ${p.image ? `<div style="align-self:flex-end"><button class="small" onclick="clearImg(${i})">Remove image</button></div>` : ""}
+      </div>
+      <div class="row" style="margin-top:6px"><div class="field">
+        <label>Colors</label>
+        <div data-colors>
+          ${p.colors.map((c, j) => `
+            <div class="color-row">
+              <input type="text" value="${esc(c.name)}" placeholder="Color name">
+              <input type="color" value="${esc(c.hex)}">
+              <button class="small danger" onclick="this.parentElement.remove()">×</button>
+            </div>`).join("")}
+        </div>
+        <button class="small" onclick="addColor(${i})">+ color</button>
+      </div></div>
+      <div class="actions">
+        <button class="danger" onclick="del(${i})">Delete</button>
+        <button class="primary" onclick="save(${i})">Save</button>
+      </div>
+    </div>`).join("");
+}
+
+function placeholderImg(p) {
+  const initial = (p.name.replace(/[^A-Za-z]/g, "") || "P")[0].toUpperCase();
+  return "data:image/svg+xml," + encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='144' height='144'><rect width='144' height='144' fill='#e8e2d8'/><text x='72' y='88' font-family='Georgia' font-size='52' fill='#1c1a17' text-anchor='middle'>${initial}</text></svg>`);
+}
+
+function cardEl(i) { return document.querySelectorAll("#list .card")[i]; }
+
+function gather(i) {
+  const el = cardEl(i);
+  const val = f => el.querySelector(`[data-f="${f}"]`).value;
+  const colors = [...el.querySelectorAll("[data-colors] .color-row")].map(r => ({
+    name: r.children[0].value.trim(), hex: r.children[1].value
+  })).filter(c => c.name);
+  return { id: products[i].id, name: val("name"), price: parseFloat(val("price")),
+           description: val("description"), image: val("image"), colors };
+}
+
+function save(i) {
+  const p = gather(i);
+  api("/api/products/" + p.id, { method: "PUT", json: p })
+    .then(() => { toast("Saved"); products[i] = p; render(); })
+    .catch(e => toast(e.message, true));
+}
+
+function del(i) {
+  if (!confirm(`Delete "${products[i].name}"?`)) return;
+  api("/api/products/" + products[i].id, { method: "DELETE" })
+    .then(() => { toast("Deleted"); load(); })
+    .catch(e => toast(e.message, true));
+}
+
+function addProduct() {
+  const name = document.getElementById("newName").value.trim();
+  const price = parseFloat(document.getElementById("newPrice").value);
+  if (!name || isNaN(price)) return toast("Name and price required", true);
+  let id = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "product";
+  let finalId = id, n = 2;
+  while (products.some(p => p.id === finalId)) finalId = `${id}-${n++}`;
+  api("/api/products", { method: "POST", json: {
+    id: finalId, name, price, description: "", image: "",
+    colors: [{ name: "Silver", hex: "#c9c9c9" }]
+  }}).then(() => {
+    document.getElementById("newName").value = "";
+    document.getElementById("newPrice").value = "";
+    toast("Added — edit details below");
+    load();
+  }).catch(e => toast(e.message, true));
+}
+
+function addColor(i) {
+  const box = cardEl(i).querySelector("[data-colors]");
+  box.insertAdjacentHTML("beforeend",
+    `<div class="color-row"><input type="text" placeholder="Color name"><input type="color" value="#c9c9c9"><button class="small danger" onclick="this.parentElement.remove()">×</button></div>`);
+}
+
+function uploadImg(input, i) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 5_000_000) return toast("Image too large (max ~5MB)", true);
+  const reader = new FileReader();
+  reader.onload = () => {
+    api("/api/upload", { method: "POST", json: { filename: file.name, data: reader.result.split(",")[1] } })
+      .then(d => {
+        const el = cardEl(i);
+        el.querySelector('[data-f="image"]').value = d.path;
+        el.querySelector("[data-img]").src = d.path;
+        toast("Image uploaded — click Save");
+      })
+      .catch(e => toast(e.message, true));
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearImg(i) {
+  const el = cardEl(i);
+  el.querySelector('[data-f="image"]').value = "";
+  el.querySelector("[data-img]").src = placeholderImg(products[i]);
+  toast("Image removed — click Save");
+}
+
+if (PW) {
+  api("/api/check").then(() => {
+    document.getElementById("gate").style.display = "none";
+    document.getElementById("main").style.display = "";
+    load();
+  }).catch(() => sessionStorage.removeItem("adminPw"));
+}
+</script>
+</body>
+</html>
