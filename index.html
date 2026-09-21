@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShearCraft — Premium Scissors & Shears</title>
+<style>
+  :root {
+    --bg: #faf8f5;
+    --ink: #1c1a17;
+    --muted: #7a746c;
+    --line: #e6e0d8;
+    --accent: #a8834f;
+    --card: #ffffff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    background: var(--bg); color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, .serif { font-family: Georgia, "Times New Roman", serif; font-weight: 400; }
+  a { color: inherit; text-decoration: none; }
+  button { font: inherit; cursor: pointer; }
+
+  /* ---------- header ---------- */
+  header {
+    position: sticky; top: 0; z-index: 20;
+    background: rgba(250,248,245,.92); backdrop-filter: blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .header-in {
+    max-width: 1180px; margin: 0 auto; padding: 18px 24px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo { font-family: Georgia, serif; font-size: 26px; letter-spacing: .12em; }
+  .logo span { color: var(--accent); }
+  nav { display: flex; gap: 28px; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; }
+  nav a { color: var(--muted); }
+  nav a:hover { color: var(--ink); }
+  .cart-btn {
+    background: none; border: 1px solid var(--line); border-radius: 999px;
+    padding: 8px 18px; font-size: 13px; letter-spacing: .08em;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .cart-count {
+    background: var(--ink); color: #fff; border-radius: 999px;
+    min-width: 20px; height: 20px; display: inline-flex;
+    align-items: center; justify-content: center; font-size: 11px; padding: 0 5px;
+  }
+
+  /* ---------- hero ---------- */
+  .hero {
+    max-width: 1180px; margin: 0 auto; padding: 84px 24px 64px; text-align: center;
+  }
+  .hero .eyebrow { font-size: 12px; letter-spacing: .3em; text-transform: uppercase; color: var(--accent); }
+  .hero h1 { font-size: clamp(36px, 5vw, 58px); margin: 18px 0 14px; }
+  .hero p { color: var(--muted); max-width: 520px; margin: 0 auto; line-height: 1.7; }
+
+  /* ---------- grid ---------- */
+  .section { max-width: 1180px; margin: 0 auto; padding: 0 24px 80px; }
+  .section-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 32px; }
+  .section-head h2 { font-size: 30px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 28px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; transition: transform .25s, box-shadow .25s; cursor: pointer; }
+  .card:hover { transform: translateY(-4px); box-shadow: 0 14px 34px rgba(28,26,23,.09); }
+  .card-img { aspect-ratio: 1; width: 100%; object-fit: cover; display: block; background: #f0ebe3; }
+  .card-body { padding: 18px 18px 20px; }
+  .card-name { font-family: Georgia, serif; font-size: 17px; margin-bottom: 6px; }
+  .card-price { font-size: 15px; color: var(--ink); }
+  .card-price .from { color: var(--muted); font-size: 12px; margin-right: 4px; }
+  .dots { display: flex; gap: 6px; margin-top: 12px; }
+  .dot { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(0,0,0,.15); }
+
+  /* ---------- product detail ---------- */
+  .detail { max-width: 1080px; margin: 0 auto; padding: 56px 24px 90px; display: grid; grid-template-columns: 1fr 1fr; gap: 56px; }
+  .detail-img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; border: 1px solid var(--line); background: #f0ebe3; }
+  .breadcrumb { font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); margin-bottom: 18px; display: inline-block; }
+  .breadcrumb:hover { color: var(--ink); }
+  .detail h1 { font-size: 34px; margin-bottom: 10px; }
+  .detail-price { font-size: 24px; margin: 14px 0 6px; }
+  .detail-price small { font-size: 13px; color: var(--muted); font-family: -apple-system, sans-serif; }
+  .stock { font-size: 13px; color: #3d7a4f; margin-bottom: 22px; }
+  .opt-label { font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 22px 0 10px; }
+  .opt-label b { color: var(--ink); font-weight: 600; }
+  .swatches { display: flex; gap: 12px; }
+  .swatch {
+    width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(0,0,0,.15);
+    padding: 0; position: relative; background-clip: padding-box;
+  }
+  .swatch.active { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--ink); }
+  .qty { display: inline-flex; align-items: center; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .qty button { width: 40px; height: 44px; background: none; border: none; font-size: 18px; color: var(--muted); }
+  .qty span { min-width: 36px; text-align: center; }
+  .add-btn {
+    display: block; width: 100%; margin-top: 28px; padding: 16px;
+    background: var(--ink); color: #fff; border: none; border-radius: 999px;
+    font-size: 14px; letter-spacing: .16em; text-transform: uppercase; transition: background .2s;
+  }
+  .add-btn:hover { background: #000; }
+  .desc { margin-top: 30px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--muted); line-height: 1.8; font-size: 15px; }
+  .trust { display: flex; gap: 24px; margin-top: 26px; font-size: 13px; color: var(--muted); flex-wrap: wrap; }
+
+  /* ---------- cart drawer ---------- */
+  .overlay { position: fixed; inset: 0; background: rgba(28,26,23,.4); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 30; }
+  .overlay.open { opacity: 1; pointer-events: auto; }
+  .drawer {
+    position: fixed; top: 0; right: -420px; width: min(420px, 92vw); height: 100%;
+    background: var(--bg); z-index: 31; transition: right .3s cubic-bezier(.2,.8,.2,1);
+    display: flex; flex-direction: column; box-shadow: -12px 0 40px rgba(0,0,0,.12);
+  }
+  .drawer.open { right: 0; }
+  .drawer-head { padding: 22px 24px; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; align-items: center; }
+  .drawer-head h3 { font-size: 22px; }
+  .close-x { background: none; border: none; font-size: 22px; color: var(--muted); }
+  .drawer-items { flex: 1; overflow-y: auto; padding: 20px 24px; }
+  .cart-item { display: grid; grid-template-columns: 64px 1fr auto; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); align-items: center; }
+  .cart-item img { width: 64px; height: 64px; object-fit: cover; border-radius: 4px; border: 1px solid var(--line); }
+  .ci-name { font-family: Georgia, serif; font-size: 15px; }
+  .ci-variant { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .ci-qty { font-size: 13px; color: var(--muted); margin-top: 3px; }
+  .ci-price { font-size: 14px; }
+  .ci-remove { background: none; border: none; color: var(--muted); font-size: 12px; text-decoration: underline; margin-top: 4px; padding: 0; }
+  .drawer-foot { padding: 22px 24px; border-top: 1px solid var(--line); }
+  .subtotal { display: flex; justify-content: space-between; font-size: 16px; margin-bottom: 6px; }
+  .ship-note { font-size: 12px; color: var(--muted); margin-bottom: 16px; }
+  .empty-cart { text-align: center; color: var(--muted); padding: 60px 0; }
+
+  /* ---------- toast ---------- */
+  .toast {
+    position: fixed; bottom: 28px; left: 50%; transform: translate(-50%, 80px);
+    background: var(--ink); color: #fff; padding: 12px 26px; border-radius: 999px;
+    font-size: 14px; transition: transform .3s; z-index: 40;
+  }
+  .toast.show { transform: translate(-50%, 0); }
+
+  /* ---------- footer ---------- */
+  footer { border-top: 1px solid var(--line); background: var(--card); }
+  .footer-in { max-width: 1180px; margin: 0 auto; padding: 56px 24px; display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 40px; }
+  footer h4 { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  footer p, footer a { font-size: 14px; color: var(--muted); line-height: 2; display: block; }
+  .footer-logo { font-family: Georgia, serif; font-size: 22px; margin-bottom: 10px; }
+  .copyright { text-align: center; font-size: 12px; color: var(--muted); padding: 20px; border-top: 1px solid var(--line); }
+
+  @media (max-width: 860px) {
+    .detail { grid-template-columns: 1fr; gap: 30px; }
+    .footer-in { grid-template-columns: 1fr; }
+    nav { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-in">
+    <a href="#/" class="logo">SHEAR<span>CRAFT</span></a>
+    <nav>
+      <a href="#/">Shop</a>
+      <a href="#footer">About</a>
+      <a href="#footer">Contact</a>
+    </nav>
+    <button class="cart-btn" onclick="toggleCart(true)">
+      Cart <span class="cart-count" id="cartCount">0</span>
+    </button>
+  </div>
+</header>
+
+<main id="app"></main>
+
+<footer id="footer">
+  <div class="footer-in">
+    <div>
+      <div class="footer-logo">SHEAR<span style="color:var(--accent)">CRAFT</span></div>
+      <p>Precision scissors &amp; shears, crafted for professionals and home makers alike. Every pair is inspected by hand before it ships.</p>
+    </div>
+    <div>
+      <h4>Shop</h4>
+      <a href="#/">All Products</a>
+      <a href="#/">New Arrivals</a>
+      <a href="#/">Best Sellers</a>
+    </div>
+    <div>
+      <h4>Customer Care</h4>
+      <a href="mailto:support@example.com">support@example.com</a>
+      <a href="#footer">Shipping &amp; Returns</a>
+      <a href="#footer">FAQ</a>
+    </div>
+  </div>
+  <div class="copyright">© 2026 ShearCraft. All rights reserved.</div>
+</footer>
+
+<div class="overlay" id="overlay" onclick="toggleCart(false)"></div>
+<aside class="drawer" id="drawer" aria-label="Shopping cart">
+  <div class="drawer-head">
+    <h3>Your Cart</h3>
+    <button class="close-x" onclick="toggleCart(false)">×</button>
+  </div>
+  <div class="drawer-items" id="cartItems"></div>
+  <div class="drawer-foot" id="cartFoot"></div>
+</aside>
+
+<div class="toast" id="toast">Added to cart</div>
+
+<script>
+/* ================================================================
+   EDIT YOUR PRODUCTS HERE — this is the only section you need.
+   - name / price: shown everywhere, incl. to reviewers
+   - colors: each needs a name and a hex swatch color
+   - image: optional. Put a photo file next to this file
+     (e.g. "photo1.jpg") and set image: "photo1.jpg".
+     Leave "" to use the auto placeholder.
+   ================================================================ */
+const STORE = {
+  name: "ShearCraft",
+  currency: "USD",
+  amazonUrl: "",   // optional: your Amazon listing URL, shown at checkout
+};
+
+const PRODUCTS = [
+  {
+    id: "pro-tailor-8",
+    name: "Professional 8\" Tailor Scissors",
+    price: 32.99,
+    colors: [
+      { name: "Classic Silver", hex: "#c9c9c9" },
+      { name: "Gold",           hex: "#d4af6a" },
+      { name: "Matte Black",    hex: "#2b2b2b" },
+    ],
+    image: "",
+    description: "Forged from Japanese stainless steel with a razor-sharp convex edge. Balanced for all-day cutting on fabric, leather and denim."
+  },
+  {
+    id: "embroidery-4",
+    name: "4\" Embroidery Detail Scissors",
+    price: 14.99,
+    colors: [
+      { name: "Rose Gold", hex: "#e0a899" },
+      { name: "Silver",    hex: "#c9c9c9" },
+    ],
+    image: "",
+    description: "Fine pointed tips for thread work, embroidery and precision craft cuts. Includes a protective leather sheath."
+  },
+  {
+    id: "kitchen-shears",
+    name: "Heavy-Duty Kitchen Shears",
+    price: 21.99,
+    colors: [
+      { name: "Black", hex: "#2b2b2b" },
+      { name: "Red",   hex: "#b03a2e" },
+    ],
+    image: "",
+    description: "Come-apart blades for easy cleaning. Cuts poultry, herbs and packaging; built-in bottle opener and nutcracker."
+  },
+  {
+    id: "hair-cutting-6",
+    name: "6\" Barber Hair Cutting Shears",
+    price: 45.99,
+    colors: [
+      { name: "Silver",    hex: "#c9c9c9" },
+      { name: "Rainbow",   hex: "#9b7ec4" },
+      { name: "Matte Black", hex: "#2b2b2b" },
+    ],
+    image: "",
+    description: "440C steel with tension adjustment screw and removable finger rest. Salon-grade sharpness for clean, quiet cuts."
+  },
+  {
+    id: "pinking-shears",
+    name: "9\" Pinking Shears",
+    price: 18.99,
+    colors: [
+      { name: "Silver", hex: "#c9c9c9" },
+      { name: "Teal",   hex: "#3f8f8b" },
+    ],
+    image: "",
+    description: "Zigzag edge prevents fabric fraying. Comfortable soft-grip handles sized for extended sewing sessions."
+  },
+  {
+    id: "craft-set-3",
+    name: "Craft Scissors 3-Piece Set",
+    price: 26.99,
+    colors: [
+      { name: "Pastel Mix", hex: "#d8b4c8" },
+      { name: "Bold Mix",   hex: "#4a6fa5" },
+    ],
+    image: "",
+    description: "Three sizes (5\", 7\", 8.5\") for paper, vinyl and mixed-media craft. Titanium-coated blades resist adhesive buildup."
+  },
+];
+/* ==================== end of editable section ==================== */
+
+const fmt = new Intl.NumberFormat("en-US", { style: "currency", currency: STORE.currency });
+const $ = (s) => document.querySelector(s);
+
+/* ---- placeholder image: elegant SVG with product initial ---- */
+function imgFor(p, colorHex) {
+  if (p.image) return p.image;
+  const bg = colorHex || "#e8e2d8";
+  const initial = p.name.replace(/[^A-Za-z]/g, "").slice(0, 1).toUpperCase();
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'>
+    <rect width='600' height='600' fill='${bg}' opacity='0.28'/>
+    <circle cx='300' cy='300' r='150' fill='${bg}' opacity='0.55'/>
+    <text x='300' y='345' font-family='Georgia,serif' font-size='130' fill='#1c1a17' text-anchor='middle' opacity='0.75'>${initial}</text>
+  </svg>`;
+  return "data:image/svg+xml," + encodeURIComponent(svg);
+}
+
+/* ---- cart (localStorage) ---- */
+let cart = JSON.parse(localStorage.getItem("cart") || "[]");
+function saveCart() { localStorage.setItem("cart", JSON.stringify(cart)); renderCart(); }
+function addToCart(pid, colorName, qty) {
+  const key = pid + "|" + colorName;
+  const found = cart.find(i => i.key === key);
+  if (found) found.qty += qty; else cart.push({ key, pid, colorName, qty });
+  saveCart();
+  toast("Added to cart");
+}
+function cartCountTotal() { return cart.reduce((n, i) => n + i.qty, 0); }
+
+/* ---- views ---- */
+function viewHome() {
+  const cards = PRODUCTS.map(p => `
+    <div class="card" onclick="location.hash='#/product/${p.id}'">
+      <img class="card-img" src="${imgFor(p, p.colors[0].hex)}" alt="${p.name}">
+      <div class="card-body">
+        <div class="card-name">${p.name}</div>
+        <div class="card-price">${fmt.format(p.price)}</div>
+        <div class="dots">${p.colors.map(c => `<span class="dot" style="background:${c.hex}" title="${c.name}"></span>`).join("")}</div>
+      </div>
+    </div>`).join("");
+  return `
+    <section class="hero">
+      <div class="eyebrow">Hand-Finished Cutting Tools</div>
+      <h1>Cut with confidence.</h1>
+      <p>Professional-grade scissors and shears, sharpened and inspected by hand. Free shipping on orders over ${fmt.format(35)}.</p>
+    </section>
+    <section class="section">
+      <div class="section-head"><h2>Shop All</h2></div>
+      <div class="grid">${cards}</div>
+    </section>`;
+}
+
+function viewDetail(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p) return `<section class="section"><h2>Product not found</h2></section>`;
+  setTimeout(() => selectColor(0), 0);
+  return `
+    <section class="detail">
+      <div><img class="detail-img" id="detailImg" src="${imgFor(p, p.colors[0].hex)}" alt="${p.name}"></div>
+      <div>
+        <a class="breadcrumb" href="#/">← Shop / All Products</a>
+        <h1>${p.name}</h1>
+        <div class="detail-price">${fmt.format(p.price)} <small>${STORE.currency}</small></div>
+        <div class="stock">✓ In stock, ships within 2 business days</div>
+        <div class="opt-label">Color — <b id="colorName">${p.colors[0].name}</b></div>
+        <div class="swatches" id="swatches">
+          ${p.colors.map((c, i) => `<button class="swatch${i === 0 ? " active" : ""}" style="background:${c.hex}" title="${c.name}" onclick="selectColor(${i})"></button>`).join("")}
+        </div>
+        <div class="opt-label">Quantity</div>
+        <div class="qty">
+          <button onclick="stepQty(-1)">−</button><span id="qty">1</span><button onclick="stepQty(1)">+</button>
+        </div>
+        <button class="add-btn" onclick="addCurrent()">Add to Cart — <span id="lineTotal">${fmt.format(p.price)}</span></button>
+        <div class="desc">${p.description}</div>
+        <div class="trust">
+          <span>✓ Free shipping over ${fmt.format(35)}</span>
+          <span>✓ 30-day returns</span>
+          <span>✓ 1-year warranty</span>
+        </div>
+      </div>
+    </section>`;
+}
+
+/* ---- detail interactions ---- */
+let curProduct = null, curColor = 0, curQty = 1;
+function selectColor(i) {
+  const id = location.hash.split("/")[2];
+  curProduct = PRODUCTS.find(x => x.id === id);
+  curColor = i;
+  const c = curProduct.colors[i];
+  $("#colorName").textContent = c.name;
+  $("#detailImg").src = imgFor(curProduct, c.hex);
+  document.querySelectorAll(".swatch").forEach((el, j) => el.classList.toggle("active", j === i));
+}
+function stepQty(d) {
+  curQty = Math.max(1, curQty + d);
+  $("#qty").textContent = curQty;
+  $("#lineTotal").textContent = fmt.format(curProduct.price * curQty);
+}
+function addCurrent() {
+  addToCart(curProduct.id, curProduct.colors[curColor].name, curQty);
+  curQty = 1;
+}
+
+/* ---- cart drawer ---- */
+function toggleCart(open) {
+  $("#drawer").classList.toggle("open", open);
+  $("#overlay").classList.toggle("open", open);
+}
+function renderCart() {
+  $("#cartCount").textContent = cartCountTotal();
+  if (!cart.length) {
+    $("#cartItems").innerHTML = `<div class="empty-cart">Your cart is empty.</div>`;
+    $("#cartFoot").innerHTML = "";
+    return;
+  }
+  $("#cartItems").innerHTML = cart.map(i => {
+    const p = PRODUCTS.find(x => x.id === i.pid);
+    const c = p.colors.find(x => x.name === i.colorName) || p.colors[0];
+    return `<div class="cart-item">
+      <img src="${imgFor(p, c.hex)}" alt="">
+      <div>
+        <div class="ci-name">${p.name}</div>
+        <div class="ci-variant">Color: ${i.colorName}</div>
+        <div class="ci-qty">Qty ${i.qty}</div>
+        <button class="ci-remove" onclick="removeItem('${i.key}')">Remove</button>
+      </div>
+      <div class="ci-price">${fmt.format(p.price * i.qty)}</div>
+    </div>`;
+  }).join("");
+  const subtotal = cart.reduce((s, i) => s + PRODUCTS.find(x => x.id === i.pid).price * i.qty, 0);
+  $("#cartFoot").innerHTML = `
+    <div class="subtotal"><span>Subtotal</span><b>${fmt.format(subtotal)}</b></div>
+    <div class="ship-note">Shipping calculated at checkout.</div>
+    <button class="add-btn" onclick="checkout()">Checkout</button>`;
+}
+function removeItem(key) { cart = cart.filter(i => i.key !== key); saveCart(); }
+function checkout() {
+  toast(STORE.amazonUrl ? "Redirecting to our Amazon store…" : "Checkout opens soon — thank you!");
+  if (STORE.amazonUrl) setTimeout(() => window.open(STORE.amazonUrl, "_blank"), 600);
+}
+
+/* ---- misc ---- */
+let toastTimer;
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 1800);
+}
+function route() {
+  curQty = 1;
+  const parts = location.hash.split("/");
+  $("#app").innerHTML = parts[1] === "product" ? viewDetail(parts[2]) : viewHome();
+  window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", route);
+route();
+renderCart();
+</script>
+</body>
+</html>
