@@ -1,2 +1,4 @@
 products.db
 __pycache__/
+public/
+.wrangler/

@@ -1,0 +1,16 @@
+name = "www"
+main = "worker.js"
+compatibility_date = "2026-09-21"
+
+[assets]
+directory = "./public"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "huitong-catalog"
+database_id = "9344b8fc-4f0f-4b13-8fa6-39dbd9da56a8"
+
+[[kv_namespaces]]
+binding = "IMAGES"
+id = "66c5cc341e604c5288f340ff5c0da74c"
