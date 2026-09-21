@@ -162,6 +162,10 @@
     <input type="password" id="pw" placeholder="Admin password" onkeydown="if(event.key==='Enter')login()">
     <div style="height:12px"></div>
     <button class="primary" style="width:100%" onclick="login()">Sign in</button>
+    <p class="muted" id="mirrorNote" style="display:none;margin-top:14px">
+      This is the read-only mirror. The admin lives at<br>
+      <a href="https://www.huitong-store.workers.dev/admin" style="color:var(--accent)">www.huitong-store.workers.dev/admin</a>
+    </p>
   </div>
 </div>
 
@@ -561,6 +565,11 @@ function toast(msg, isErr) {
 }
 
 /* ---------- boot ---------- */
+// The GitHub Pages mirror has no backend — point admins to the cloud site.
+if (location.hostname.endsWith("github.io")) {
+  document.getElementById("mirrorNote").style.display = "block";
+  document.getElementById("pw").style.display = "none";
+}
 if (PW) {
   api("/api/check").then(enterApp).catch(() => sessionStorage.removeItem("adminPw"));
 }
