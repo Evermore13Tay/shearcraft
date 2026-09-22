@@ -32,6 +32,9 @@ function validate(p) {
     return "images must be a list of uploaded image paths";
   const upc = String(p.upc || "").trim();
   if (upc && !/^\d{8,14}$/.test(upc)) return "upc must be 8-14 digits (or empty)";
+  for (const field of ["brand", "sku"]) {
+    if (String(p[field] || "").trim().length > 80) return `${field} must be 80 characters or fewer`;
+  }
   return null;
 }
 
@@ -46,7 +49,8 @@ async function readJson(request) {
 }
 
 const rowToProduct = r => ({
-  id: r.id, name: r.name, price: r.price, upc: r.upc || "", description: r.description,
+  id: r.id, name: r.name, price: r.price, upc: r.upc || "",
+  brand: r.brand || "", sku: r.sku || "", description: r.description,
   images: JSON.parse(r.images), colors: JSON.parse(r.colors),
 });
 
@@ -91,10 +95,12 @@ export default {
       if (exists) return json({ error: "id already exists" }, 409);
       const pos = (await env.DB.prepare("SELECT COALESCE(MAX(position)+1, 0) AS p FROM products").first()).p;
       await env.DB.prepare(
-        "INSERT INTO products(id, name, price, description, images, colors, position, upc) VALUES(?,?,?,?,?,?,?,?)"
+        "INSERT INTO products(id, name, price, description, images, colors, position, upc, brand, sku)" +
+        " VALUES(?,?,?,?,?,?,?,?,?,?)"
       ).bind(body.id, body.name.trim(), Number(body.price), String(body.description || "").trim(),
              JSON.stringify(body.images || []), JSON.stringify(body.colors), pos,
-             String(body.upc || "").trim()).run();
+             String(body.upc || "").trim(), String(body.brand || "").trim(),
+             String(body.sku || "").trim()).run();
       return json({ ok: true });
     }
 
@@ -140,10 +146,11 @@ export default {
       const err = validate(body);
       if (err) return json({ error: err }, 400);
       const res = await env.DB.prepare(
-        "UPDATE products SET name=?, price=?, description=?, images=?, colors=?, upc=? WHERE id=?"
+        "UPDATE products SET name=?, price=?, description=?, images=?, colors=?, upc=?, brand=?, sku=? WHERE id=?"
       ).bind(body.name.trim(), Number(body.price), String(body.description || "").trim(),
              JSON.stringify(body.images || []), JSON.stringify(body.colors),
-             String(body.upc || "").trim(), m[1]).run();
+             String(body.upc || "").trim(), String(body.brand || "").trim(),
+             String(body.sku || "").trim(), m[1]).run();
       if (!res.meta.changes) return json({ error: "not found" }, 404);
       return json({ ok: true });
     }

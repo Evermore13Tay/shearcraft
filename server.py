@@ -65,6 +65,9 @@ def connect():
             pass  # old SQLite without DROP COLUMN: harmless to leave it
     if "upc" not in cols:
         con.execute("ALTER TABLE products ADD COLUMN upc TEXT DEFAULT ''")
+    for extra in ("brand", "sku"):
+        if extra not in cols:
+            con.execute(f"ALTER TABLE products ADD COLUMN {extra} TEXT DEFAULT ''")
     return con
 
 
@@ -79,6 +82,7 @@ def seed_if_empty(con):
 
 def row_to_product(r):
     return {"id": r["id"], "name": r["name"], "price": r["price"], "upc": r["upc"] or "",
+            "brand": r["brand"] or "", "sku": r["sku"] or "",
             "description": r["description"], "images": json.loads(r["images"]),
             "colors": json.loads(r["colors"])}
 
@@ -109,6 +113,9 @@ def validate(p):
     upc = str(p.get("upc") or "").strip()
     if upc and not re.match(r"^\d{8,14}$", upc):
         return "upc must be 8-14 digits (or empty)"
+    for field in ("brand", "sku"):
+        if len(str(p.get(field) or "").strip()) > 80:
+            return f"{field} must be 80 characters or fewer"
     return None
 
 
@@ -165,10 +172,12 @@ class Handler(SimpleHTTPRequestHandler):
                 con.close()
                 return self.send_json({"error": "id already exists"}, 409)
             pos = con.execute("SELECT COALESCE(MAX(position)+1, 0) AS p FROM products").fetchone()["p"]
-            con.execute("INSERT INTO products(id, name, price, description, images, colors, position, upc) VALUES(?,?,?,?,?,?,?,?)",
+            con.execute("INSERT INTO products(id, name, price, description, images, colors, position, upc, brand, sku)"
+                        " VALUES(?,?,?,?,?,?,?,?,?,?)",
                         (body["id"], body["name"].strip(), float(body["price"]),
                          str(body.get("description", "")).strip(), json.dumps(body.get("images") or []),
-                         json.dumps(body["colors"]), pos, str(body.get("upc") or "").strip()))
+                         json.dumps(body["colors"]), pos, str(body.get("upc") or "").strip(),
+                         str(body.get("brand") or "").strip(), str(body.get("sku") or "").strip()))
             con.commit()
             con.close()
             self.send_json({"ok": True})
@@ -219,10 +228,12 @@ class Handler(SimpleHTTPRequestHandler):
         if err:
             return self.send_json({"error": err}, 400)
         con = connect()
-        cur = con.execute("UPDATE products SET name=?, price=?, description=?, images=?, colors=?, upc=? WHERE id=?",
+        cur = con.execute("UPDATE products SET name=?, price=?, description=?, images=?, colors=?, upc=?,"
+                          " brand=?, sku=? WHERE id=?",
                           (body["name"].strip(), float(body["price"]), str(body.get("description", "")).strip(),
                            json.dumps(body.get("images") or []), json.dumps(body["colors"]),
-                           str(body.get("upc") or "").strip(), m.group(1)))
+                           str(body.get("upc") or "").strip(), str(body.get("brand") or "").strip(),
+                           str(body.get("sku") or "").strip(), m.group(1)))
         n = cur.rowcount
         con.commit()
         con.close()

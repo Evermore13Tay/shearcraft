@@ -308,6 +308,10 @@ function editorHtml(p) {
       <div class="field price"><label>UPC (optional)</label><input type="text" data-f="upc" inputmode="numeric" placeholder="12 digits" value="${esc(p.upc || "")}" oninput="markDirty('${esc(p.id)}')"></div>
     </div>
     <div class="field-row">
+      <div class="field"><label>Brand (optional)</label><input type="text" data-f="brand" placeholder="e.g. Hui Tong" value="${esc(p.brand || "")}" oninput="markDirty('${esc(p.id)}')"></div>
+      <div class="field"><label>Model / SKU (optional)</label><input type="text" data-f="sku" placeholder="e.g. HT-PS-5MM" value="${esc(p.sku || "")}" oninput="markDirty('${esc(p.id)}')"></div>
+    </div>
+    <div class="field-row">
       <div class="field"><label>Description</label><textarea data-f="description" oninput="markDirty('${esc(p.id)}')">${esc(p.description)}</textarea></div>
     </div>
     <div class="field-row"><div class="field">
@@ -383,6 +387,7 @@ function gather(id) {
     hex: r.querySelector("input[type=checkbox]").checked ? r.querySelector("input[type=color]").value : ""
   })).filter(c => c.name);
   return { id, name: val("name"), price: parseFloat(val("price")), upc: val("upc").trim(),
+           brand: val("brand").trim(), sku: val("sku").trim(),
            description: val("description"), images, colors };
 }
 

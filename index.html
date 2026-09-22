@@ -246,7 +246,7 @@
     </div>
     <div>
       <h4>Customer Care</h4>
-      <a href="mailto:support@example.com">support@example.com</a>
+      <a href="mailto:1098788499@qq.com">1098788499@qq.com</a>
       <a href="#footer">Shipping &amp; Returns</a>
       <a href="#footer">FAQ</a>
     </div>
@@ -295,6 +295,8 @@ const PRODUCTS_SEED = [
     "name": "Hui Tong Strong & Sharp Pinking Shears — Serrated & Scalloped Fabric Scissors",
     "price": 17.39,
     "upc": "",
+    "brand": "Hui Tong",
+    "sku": "",
     "description": "Effortlessly cuts denim, leather, and silk — clean from first tooth to last. Hand-sharpened by master craftsmen; high-carbon stainless steel resists rust and stays sharp 3x longer than standard shears. The precision serrated blade creates a smooth, finished edge that prevents fraying and reduces bulk.",
     "images": [
       "images/pinking-shears-1.jpg",
@@ -335,6 +337,8 @@ const PRODUCTS_SEED = [
     "name": "Professional 8\" Tailor Scissors",
     "price": 32.99,
     "upc": "",
+    "brand": "",
+    "sku": "",
     "description": "Forged from Japanese stainless steel with a razor-sharp convex edge. Balanced for all-day cutting on fabric, leather and denim.",
     "images": [],
     "colors": [
@@ -357,6 +361,8 @@ const PRODUCTS_SEED = [
     "name": "4\" Embroidery Detail Scissors",
     "price": 14.99,
     "upc": "",
+    "brand": "",
+    "sku": "",
     "description": "Fine pointed tips for thread work, embroidery and precision craft cuts. Includes a protective leather sheath.",
     "images": [],
     "colors": [
@@ -375,6 +381,8 @@ const PRODUCTS_SEED = [
     "name": "Heavy-Duty Kitchen Shears",
     "price": 21.99,
     "upc": "",
+    "brand": "",
+    "sku": "",
     "description": "Come-apart blades for easy cleaning. Cuts poultry, herbs and packaging; built-in bottle opener and nutcracker.",
     "images": [],
     "colors": [
@@ -393,6 +401,8 @@ const PRODUCTS_SEED = [
     "name": "6\" Barber Hair Cutting Shears",
     "price": 45.99,
     "upc": "",
+    "brand": "",
+    "sku": "",
     "description": "440C steel with tension adjustment screw and removable finger rest. Salon-grade sharpness for clean, quiet cuts.",
     "images": [],
     "colors": [
@@ -415,6 +425,8 @@ const PRODUCTS_SEED = [
     "name": "9\" Pinking Shears",
     "price": 18.99,
     "upc": "",
+    "brand": "",
+    "sku": "",
     "description": "Zigzag edge prevents fabric fraying. Comfortable soft-grip handles sized for extended sewing sessions.",
     "images": [],
     "colors": [
@@ -433,6 +445,8 @@ const PRODUCTS_SEED = [
     "name": "Craft Scissors 3-Piece Set",
     "price": 26.99,
     "upc": "",
+    "brand": "",
+    "sku": "",
     "description": "Three sizes (5\", 7\", 8.5\") for paper, vinyl and mixed-media craft. Titanium-coated blades resist adhesive buildup.",
     "images": [],
     "colors": [
@@ -537,7 +551,9 @@ function viewDetail(id) {
         <a class="breadcrumb" href="#/">← Shop / All Products</a>
         <h1>${p.name}</h1>
         <div class="detail-price">${fmt.format(p.price)} <small>${STORE.currency}</small></div>
-        ${p.upc ? `<div class="upc-line">UPC: ${p.upc}</div>` : ""}
+        ${(p.brand || p.sku || p.upc) ? `<div class="upc-line">${
+          [p.brand && `Brand: ${p.brand}`, p.sku && `Model: ${p.sku}`, p.upc && `UPC: ${p.upc}`]
+            .filter(Boolean).join(" &nbsp;·&nbsp; ")}</div>` : ""}
         <div class="stock">✓ In stock, ships within 2 business days</div>
         <div class="opt-label">${hasSwatches ? "Color" : "Style"} — <b id="colorName">${p.colors[0].name}</b></div>
         <div class="swatches" id="swatches">
